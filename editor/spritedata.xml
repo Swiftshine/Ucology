@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<sprites>
+	<sprite string_id="examplemod:demo" name="Demo Actor">
+        <!-- Settings go here -->
+	</sprite>
+</sprites>

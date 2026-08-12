@@ -1,0 +1,49 @@
+{
+    WURPLSVersion: "1.0",
+    
+    Name: "ExampleMod",
+    Type: "Standard",
+    Version: "1.0.0",
+    Description: "This is the RedCore example mod!",
+    
+    SourceDirs: [
+        "src"
+    ],
+    
+    IncludeDirs: [
+        "include"
+    ],
+    
+    BuildOptions: [
+        "-DNW_RELEASE"
+    ],
+
+    ConvMapProvider: "RedCore",
+    
+    Targets: {
+        US: {
+            TitleID: "00050000-10101D00"
+        },
+        EU: {
+            TitleID: "00050000-10101E00"
+        },
+        JP: {
+            TitleID: "00050000-10101C00"
+        },
+        USBundle: {
+            TitleID: "00050000-1014B700"
+        },
+        EUBundle: {
+            TitleID: "00050000-1014B800"
+        },
+        USLuigi: {
+            TitleID: "00050000-10142300"
+        },
+        EULuigi: {
+            TitleID: "00050000-10142400"
+        },
+        JPLuigi: {
+            TitleID: "00050000-10142200"
+        }
+    }
+}

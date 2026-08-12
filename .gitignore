@@ -1,0 +1,7 @@
+.cache
+.tachyon
+out
+notes
+compile_commands.json
+.DS_Store
+.vscode

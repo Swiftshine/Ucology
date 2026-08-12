@@ -1,0 +1,49 @@
+{
+  "WURPLSLockfileVersion": "1.0",
+  "DirectDependencies": {
+    "RedCore": {
+      "Source": "Zenith-Team/RedCore",
+      "Version": "^1.0.2",
+      "Dependencies": {
+        "Telkin": {
+          "Source": "Zenith-Team/Telkin",
+          "Version": "1.0.8",
+          "Dependencies": {}
+        }
+      }
+    }
+  },
+  "ResolvedDependencies": {
+    "RedCore": {
+      "Current": "1.0.2",
+      "Source": "https://github.com/Zenith-Team/RedCore/releases/download/1.0.2/package.zip",
+      "Hash": "1c5fc9f2d4cabd11b1f17a06f14f88c0fe79eb592d41cb4dff6d8ea65a7cfe6e",
+      "IncludeDirs": [
+        ".tachyon/packages/RedCore/include",
+        ".tachyon/packages/RedCore/libs/headers",
+        ".tachyon/packages/RedCore/libs/sead/engine/library/include",
+        ".tachyon/packages/RedCore/libs/sead/engine/library/modules/include",
+        ".tachyon/packages/RedCore/libs/sead/packages/agl/include",
+        ".tachyon/packages/RedCore/libs/sead/packages/nw_ptcl/library/include",
+        ".tachyon/packages/RedCore/libs/Sys/include",
+        ".tachyon/packages/RedCore/libs/G3d/include",
+        ".tachyon/packages/RedCore/libs/Snd/include",
+        ".tachyon/packages/RedCore/libs/Lyt/include",
+        ".tachyon/packages/RedCore/libs/Eft/include",
+        ".tachyon/packages/RedCore/libs/FFL/include",
+        ".tachyon/packages/RedCore/libs"
+      ]
+    },
+    "Telkin": {
+      "Current": "1.0.8",
+      "Source": "https://github.com/Zenith-Team/Telkin/releases/download/1.0.8/package.zip",
+      "Hash": "251462a139c9d5139c0c74406fd439804bc1428672bd4c4a6b6b9eab35158457",
+      "IncludeDirs": [
+        ".tachyon/packages/Telkin/include",
+        ".tachyon/packages/Telkin/libs/DynamicLibs/dynamic_libs/include",
+        ".tachyon/packages/Telkin/libs/DynamicLibs/cafe_sdk/include",
+        ".tachyon/packages/Telkin/libs/semverc"
+      ]
+    }
+  }
+}

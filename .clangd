@@ -1,0 +1,11 @@
+CompileFlags: {
+    Add: ["-std=c++23"]
+}
+Diagnostics: {
+    Suppress: [
+        static_assert_requirement_failed
+    ]
+}
+Documentation: {
+    CommentFormat: Doxygen
+}
