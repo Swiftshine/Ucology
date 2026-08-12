@@ -5,3 +5,5 @@ notes
 compile_commands.json
 .DS_Store
 .vscode
+course_res_pack/
+scratch/

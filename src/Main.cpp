@@ -1,11 +1,11 @@
 #include <telkin/Print.h>
-#include <example/ExampleMod.h>
+#include <ucology/Ucology.h>
 
-red::Registrar* example::getRegistrar() {
-    static red::Registrar sRegistrar("examplemod");
+red::Registrar* ucology::getRegistrar() {
+    static red::Registrar sRegistrar("ucology");
     return &sRegistrar;
 }
 
 void main() {
-    tk::println("Welcome to Example Mod");
+    tk::println("Welcome to Ucology!");
 }

@@ -1,6 +1,16 @@
 <?xml version="1.0"?>
 <sprites>
-	<sprite string_id="examplemod:demo" name="Demo Actor">
-        <!-- Settings go here -->
+    <sprite string_id="ucology:flower_manager" name="Flower Manager">
+        <list nybble="1" title="Flower Set">
+            <entry value="0">Forest</entry>
+            <entry value="1">Forest (Big Flowers)</entry>
+            <entry value="2">Underground</entry>
+            <entry value="3">Sky</entry>
+            <entry value="4">Sky (No Butterflies)</entry>
+            <entry value="5">Standard</entry>
+        </list>
 	</sprite>
+
+	<sprite string_id="ucology:flower" name="Flower"></sprite>
+	<sprite string_id="ucology:butterfly" name="Butterfly"></sprite>
 </sprites>

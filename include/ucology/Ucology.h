@@ -2,8 +2,6 @@
 
 #include <red/registry/Registrar.h>
 
-namespace example {
-    
+namespace ucology {
     red::Registrar* getRegistrar();
-    
 }

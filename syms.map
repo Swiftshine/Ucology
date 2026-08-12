@@ -1,3 +1,8 @@
 @addresses_from "00050000-10101D00" // US v1.3.0 (v64)
 
 // If your mod uses symbols that aren't in RedCore, you can add them here.
+
+_ZN2Bg9sInstanceE = 0x101dab94;
+_ZN2Bg14registerFlowerEfffhhh = 0x0268b96c;
+_ZN2Bg17registerButterflyEfffhhh = 0x02685914;
+_ZN2Bg11placeFlowerEffhb = 0x0268b974;

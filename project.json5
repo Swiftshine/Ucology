@@ -1,25 +1,25 @@
 {
     WURPLSVersion: "1.0",
-    
-    Name: "ExampleMod",
+
+    Name: "Ucology",
     Type: "Standard",
     Version: "1.0.0",
-    Description: "This is the RedCore example mod!",
-    
+    Description: "Isn't nature fascinating?",
+
     SourceDirs: [
         "src"
     ],
-    
+
     IncludeDirs: [
         "include"
     ],
-    
+
     BuildOptions: [
         "-DNW_RELEASE"
     ],
 
     ConvMapProvider: "RedCore",
-    
+
     Targets: {
         US: {
             TitleID: "00050000-10101D00"
