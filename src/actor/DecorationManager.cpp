@@ -37,7 +37,7 @@ public:
     bool mHasBigFlowers;
     bool mDisableButterflies;
     u8 mFlowerSet;
-    u8 mGrassSet;
+    // u8 mGrassSet;
     u8 mFlowerTypes[5];
     u8 mGrassType;
     u8 mButterflyTypes[5];
@@ -82,7 +82,7 @@ ActorBase::Result DecorationManager::create() {
     mDisableButterflies = (nybble2 & 2) != 0;
 
     mFlowerSet = red::SpriteUtil::getNybble3(this);
-    mGrassSet = red::SpriteUtil::getNybble4(this);
+    // mGrassSet = red::SpriteUtil::getNybble4(this);
     mFlowerTypes[0] = red::SpriteUtil::getNybble5(this);
     mFlowerTypes[1] = red::SpriteUtil::getNybble6(this);
     mFlowerTypes[2] = red::SpriteUtil::getNybble7(this);
@@ -196,17 +196,67 @@ void DecorationManager::loadFlowers(FlowerTexMgr* texMgr) {
 void DecorationManager::loadGrass(FlowerTexMgr* texMgr) {
     nw::g3d::res::ResFile* res = nullptr; // dummy;
 
-    ResMgr::instance()->loadArchiveRes("obj_kusa", "actor/obj_kusa.szs", nullptr, true);
+    // todo: allow the user to select custom grass types
+    // for now, though, just the vanilla ones
 
     char textureName[32];
 
-    for (u32 i = 0; i < 5; i++) {
-        snprintf(textureName, sizeof(textureName), "obj_kusa%02d", i + 1);
-        TextureRenderer::loadTexture("obj_kusa", textureName, &texMgr->mGrassTextures[i], res, nullptr);
+    switch (mGrassType) {
+        
+        // underground
+        case 1: {
+            ResMgr::instance()->loadArchiveRes("obj_kusa_chika", "actor/obj_kusa_chika.szs", nullptr, true);
+            for (u32 i = 0; i < 5; i++) {
+                snprintf(textureName, sizeof(textureName), "obj_kusa_chika%02d", i + 1);
+                TextureRenderer::loadTexture("obj_kusa_chika", textureName, &texMgr->mGrassTextures[i], res, nullptr);
 
-        snprintf(textureName, sizeof(textureName), "obj_kusa%02d_nml", i + 1);
-        TextureRenderer::loadTexture("obj_kusa", textureName, &texMgr->mGrassTextureNormals[i], res, nullptr);
+                snprintf(textureName, sizeof(textureName), "obj_kusa_chika%02d_nml", i + 1);
+                TextureRenderer::loadTexture("obj_kusa_chika", textureName, &texMgr->mGrassTextureNormals[i], res, nullptr);
+            }
+            break;
+        }
+
+        // sky
+        case 2: {
+            ResMgr::instance()->loadArchiveRes("obj_kusa_kogen", "actor/obj_kusa_kogen.szs", nullptr, true);
+            for (u32 i = 0; i < 5; i++) {
+                snprintf(textureName, sizeof(textureName), "obj_kusa_kogen%02d", i + 1);
+                TextureRenderer::loadTexture("obj_kusa_kogen", textureName, &texMgr->mGrassTextures[i], res, nullptr);
+
+                snprintf(textureName, sizeof(textureName), "obj_kusa_kogen%02d_nml", i + 1);
+                TextureRenderer::loadTexture("obj_kusa_kogen", textureName, &texMgr->mGrassTextureNormals[i], res, nullptr);
+            }
+            break;
+        }
+
+        // forest
+        case 3: {
+            ResMgr::instance()->loadArchiveRes("obj_kusa_daishizen", "actor/obj_kusa_daishizen.szs", nullptr, true);
+            for (u32 i = 0; i < 5; i++) {
+                snprintf(textureName, sizeof(textureName), "obj_kusa_dai%02d", i + 1);
+                TextureRenderer::loadTexture("obj_kusa_daishizen", textureName, &texMgr->mGrassTextures[i], res, nullptr);
+
+                snprintf(textureName, sizeof(textureName), "obj_kusa_dai%02d_nml", i + 1);
+                TextureRenderer::loadTexture("obj_kusa_daishizen", textureName, &texMgr->mGrassTextureNormals[i], res, nullptr);
+            }
+            break;
+        }
+
+        // standard
+        case 0:
+        default: {
+            ResMgr::instance()->loadArchiveRes("obj_kusa", "actor/obj_kusa.szs", nullptr, true);
+
+            for (u32 i = 0; i < 5; i++) {
+                snprintf(textureName, sizeof(textureName), "obj_kusa%02d", i + 1);
+                TextureRenderer::loadTexture("obj_kusa", textureName, &texMgr->mGrassTextures[i], res, nullptr);
+
+                snprintf(textureName, sizeof(textureName), "obj_kusa%02d_nml", i + 1);
+                TextureRenderer::loadTexture("obj_kusa", textureName, &texMgr->mGrassTextureNormals[i], res, nullptr);
+            }
+        }
     }
+    
 
     texMgr->mGrassRenderer.create(
         &texMgr->mGrassTextures[0],

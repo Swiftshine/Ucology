@@ -33,7 +33,7 @@
             <entry value="15">Set 16</entry>
         </list>
 
-        <list nybble="4" title="Grass Set" requirednybble="1" requiredval="6">
+        <!-- <list nybble="4" title="Grass Set" requirednybble="1" requiredval="6">
             <entry value="0">Set 1</entry>
             <entry value="1">Set 2</entry>
             <entry value="2">Set 3</entry>
@@ -50,7 +50,7 @@
             <entry value="13">Set 14</entry>
             <entry value="14">Set 15</entry>
             <entry value="15">Set 16</entry>
-        </list>
+        </list> -->
 
         <list nybble="5" title="Flower Type A" requirednybble="1" requiredval="6">
             <entry value="0">Type 1</entry>
@@ -148,6 +148,13 @@
         </list>
 
         <list nybble="10" title="Grass Type" requirednybble="1" requiredval="6">
+            <entry value="0">Standard</entry>
+            <entry value="1">Underground</entry>
+            <entry value="2">Sky</entry>
+            <entry value="3">Forest</entry>
+        </list>
+        
+        <!-- <list nybble="10" title="Grass Type" requirednybble="1" requiredval="6">
             <entry value="0">Type 1</entry>
             <entry value="1">Type 2</entry>
             <entry value="2">Type 3</entry>
@@ -164,7 +171,7 @@
             <entry value="13">Type 14</entry>
             <entry value="14">Type 15</entry>
             <entry value="15">Type 16</entry>
-        </list>
+        </list> -->
 
         <list nybble="11" title="Butterfly Type A" requirednybble="1" requiredval="6">
             <entry value="0">Type 1</entry>
