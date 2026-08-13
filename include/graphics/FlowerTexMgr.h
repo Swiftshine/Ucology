@@ -21,7 +21,7 @@ public:
         bool _36;
         bool mHasButterflies;
         u8 _38[60];
-        bool mIsBig;
+        bool mHasBigFlowers;
         u8 _75[3];
         u32 _78;
     };

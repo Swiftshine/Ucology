@@ -1,16 +1,301 @@
 <?xml version="1.0"?>
 <sprites>
-    <sprite string_id="ucology:flower_manager" name="Flower Manager">
-        <list nybble="1" title="Flower Set">
+    <sprite string_id="ucology:decoration_manager" name="Decoration Manager">
+        <list nybble="1" title="Decoration Set">
             <entry value="0">Forest</entry>
             <entry value="1">Forest (Big Flowers)</entry>
             <entry value="2">Underground</entry>
             <entry value="3">Sky</entry>
             <entry value="4">Sky (No Butterflies)</entry>
             <entry value="5">Standard</entry>
+            <entry value="6">Custom Configuration</entry>
         </list>
-	</sprite>
 
-	<sprite string_id="ucology:flower" name="Flower"></sprite>
-	<sprite string_id="ucology:butterfly" name="Butterfly"></sprite>
+        <checkbox nybble="2" mask="1" title="Big Flowers" requirednybble="1" requiredval="6"/>
+        <checkbox nybble="2" mask="2" title="Disable Butterflies" requirednybble="1" requiredval="6"/>
+
+        <list nybble="3" title="Flower Set" requirednybble="1" requiredval="6">
+            <entry value="0">Set 1</entry>
+            <entry value="1">Set 2</entry>
+            <entry value="2">Set 3</entry>
+            <entry value="3">Set 4</entry>
+            <entry value="4">Set 5</entry>
+            <entry value="5">Set 6</entry>
+            <entry value="6">Set 7</entry>
+            <entry value="7">Set 8</entry>
+            <entry value="8">Set 9</entry>
+            <entry value="9">Set 10</entry>
+            <entry value="10">Set 11</entry>
+            <entry value="11">Set 12</entry>
+            <entry value="12">Set 13</entry>
+            <entry value="13">Set 14</entry>
+            <entry value="14">Set 15</entry>
+            <entry value="15">Set 16</entry>
+        </list>
+
+        <list nybble="4" title="Grass Set" requirednybble="1" requiredval="6">
+            <entry value="0">Set 1</entry>
+            <entry value="1">Set 2</entry>
+            <entry value="2">Set 3</entry>
+            <entry value="3">Set 4</entry>
+            <entry value="4">Set 5</entry>
+            <entry value="5">Set 6</entry>
+            <entry value="6">Set 7</entry>
+            <entry value="7">Set 8</entry>
+            <entry value="8">Set 9</entry>
+            <entry value="9">Set 10</entry>
+            <entry value="10">Set 11</entry>
+            <entry value="11">Set 12</entry>
+            <entry value="12">Set 13</entry>
+            <entry value="13">Set 14</entry>
+            <entry value="14">Set 15</entry>
+            <entry value="15">Set 16</entry>
+        </list>
+
+        <list nybble="5" title="Flower Type A" requirednybble="1" requiredval="6">
+            <entry value="0">Type 1</entry>
+            <entry value="1">Type 2</entry>
+            <entry value="2">Type 3</entry>
+            <entry value="3">Type 4</entry>
+            <entry value="4">Type 5</entry>
+            <entry value="5">Type 6</entry>
+            <entry value="6">Type 7</entry>
+            <entry value="7">Type 8</entry>
+            <entry value="8">Type 9</entry>
+            <entry value="9">Type 10</entry>
+            <entry value="10">Type 11</entry>
+            <entry value="11">Type 12</entry>
+            <entry value="12">Type 13</entry>
+            <entry value="13">Type 14</entry>
+            <entry value="14">Type 15</entry>
+            <entry value="15">Type 16</entry>
+        </list>
+
+        <list nybble="6" title="Flower Type B" requirednybble="1" requiredval="6">
+            <entry value="0">Type 1</entry>
+            <entry value="1">Type 2</entry>
+            <entry value="2">Type 3</entry>
+            <entry value="3">Type 4</entry>
+            <entry value="4">Type 5</entry>
+            <entry value="5">Type 6</entry>
+            <entry value="6">Type 7</entry>
+            <entry value="7">Type 8</entry>
+            <entry value="8">Type 9</entry>
+            <entry value="9">Type 10</entry>
+            <entry value="10">Type 11</entry>
+            <entry value="11">Type 12</entry>
+            <entry value="12">Type 13</entry>
+            <entry value="13">Type 14</entry>
+            <entry value="14">Type 15</entry>
+            <entry value="15">Type 16</entry>
+        </list>
+
+        <list nybble="7" title="Flower Type C" requirednybble="1" requiredval="6">
+            <entry value="0">Type 1</entry>
+            <entry value="1">Type 2</entry>
+            <entry value="2">Type 3</entry>
+            <entry value="3">Type 4</entry>
+            <entry value="4">Type 5</entry>
+            <entry value="5">Type 6</entry>
+            <entry value="6">Type 7</entry>
+            <entry value="7">Type 8</entry>
+            <entry value="8">Type 9</entry>
+            <entry value="9">Type 10</entry>
+            <entry value="10">Type 11</entry>
+            <entry value="11">Type 12</entry>
+            <entry value="12">Type 13</entry>
+            <entry value="13">Type 14</entry>
+            <entry value="14">Type 15</entry>
+            <entry value="15">Type 16</entry>
+        </list>
+
+        <list nybble="8" title="Flower Type D" requirednybble="1" requiredval="6">
+            <entry value="0">Type 1</entry>
+            <entry value="1">Type 2</entry>
+            <entry value="2">Type 3</entry>
+            <entry value="3">Type 4</entry>
+            <entry value="4">Type 5</entry>
+            <entry value="5">Type 6</entry>
+            <entry value="6">Type 7</entry>
+            <entry value="7">Type 8</entry>
+            <entry value="8">Type 9</entry>
+            <entry value="9">Type 10</entry>
+            <entry value="10">Type 11</entry>
+            <entry value="11">Type 12</entry>
+            <entry value="12">Type 13</entry>
+            <entry value="13">Type 14</entry>
+            <entry value="14">Type 15</entry>
+            <entry value="15">Type 16</entry>
+        </list>
+
+        <list nybble="9" title="Flower Type E" requirednybble="1" requiredval="6">
+            <entry value="0">Type 1</entry>
+            <entry value="1">Type 2</entry>
+            <entry value="2">Type 3</entry>
+            <entry value="3">Type 4</entry>
+            <entry value="4">Type 5</entry>
+            <entry value="5">Type 6</entry>
+            <entry value="6">Type 7</entry>
+            <entry value="7">Type 8</entry>
+            <entry value="8">Type 9</entry>
+            <entry value="9">Type 10</entry>
+            <entry value="10">Type 11</entry>
+            <entry value="11">Type 12</entry>
+            <entry value="12">Type 13</entry>
+            <entry value="13">Type 14</entry>
+            <entry value="14">Type 15</entry>
+            <entry value="15">Type 16</entry>
+        </list>
+
+        <list nybble="10" title="Grass Type" requirednybble="1" requiredval="6">
+            <entry value="0">Type 1</entry>
+            <entry value="1">Type 2</entry>
+            <entry value="2">Type 3</entry>
+            <entry value="3">Type 4</entry>
+            <entry value="4">Type 5</entry>
+            <entry value="5">Type 6</entry>
+            <entry value="6">Type 7</entry>
+            <entry value="7">Type 8</entry>
+            <entry value="8">Type 9</entry>
+            <entry value="9">Type 10</entry>
+            <entry value="10">Type 11</entry>
+            <entry value="11">Type 12</entry>
+            <entry value="12">Type 13</entry>
+            <entry value="13">Type 14</entry>
+            <entry value="14">Type 15</entry>
+            <entry value="15">Type 16</entry>
+        </list>
+
+        <list nybble="11" title="Butterfly Type A" requirednybble="1" requiredval="6">
+            <entry value="0">Type 1</entry>
+            <entry value="1">Type 2</entry>
+            <entry value="2">Type 3</entry>
+            <entry value="3">Type 4</entry>
+            <entry value="4">Type 5</entry>
+            <entry value="5">Type 6</entry>
+            <entry value="6">Type 7</entry>
+            <entry value="7">Type 8</entry>
+            <entry value="8">Type 9</entry>
+            <entry value="9">Type 10</entry>
+            <entry value="10">Type 11</entry>
+            <entry value="11">Type 12</entry>
+            <entry value="12">Type 13</entry>
+            <entry value="13">Type 14</entry>
+            <entry value="14">Type 15</entry>
+            <entry value="15">Type 16</entry>
+        </list>
+
+        <list nybble="12" title="Butterfly Type B" requirednybble="1" requiredval="6">
+            <entry value="0">Type 1</entry>
+            <entry value="1">Type 2</entry>
+            <entry value="2">Type 3</entry>
+            <entry value="3">Type 4</entry>
+            <entry value="4">Type 5</entry>
+            <entry value="5">Type 6</entry>
+            <entry value="6">Type 7</entry>
+            <entry value="7">Type 8</entry>
+            <entry value="8">Type 9</entry>
+            <entry value="9">Type 10</entry>
+            <entry value="10">Type 11</entry>
+            <entry value="11">Type 12</entry>
+            <entry value="12">Type 13</entry>
+            <entry value="13">Type 14</entry>
+            <entry value="14">Type 15</entry>
+            <entry value="15">Type 16</entry>
+        </list>
+
+        <list nybble="13" title="Butterfly Type C" requirednybble="1" requiredval="6">
+            <entry value="0">Type 1</entry>
+            <entry value="1">Type 2</entry>
+            <entry value="2">Type 3</entry>
+            <entry value="3">Type 4</entry>
+            <entry value="4">Type 5</entry>
+            <entry value="5">Type 6</entry>
+            <entry value="6">Type 7</entry>
+            <entry value="7">Type 8</entry>
+            <entry value="8">Type 9</entry>
+            <entry value="9">Type 10</entry>
+            <entry value="10">Type 11</entry>
+            <entry value="11">Type 12</entry>
+            <entry value="12">Type 13</entry>
+            <entry value="13">Type 14</entry>
+            <entry value="14">Type 15</entry>
+            <entry value="15">Type 16</entry>
+        </list>
+
+        <list nybble="14" title="Butterfly Type D" requirednybble="1" requiredval="6">
+            <entry value="0">Type 1</entry>
+            <entry value="1">Type 2</entry>
+            <entry value="2">Type 3</entry>
+            <entry value="3">Type 4</entry>
+            <entry value="4">Type 5</entry>
+            <entry value="5">Type 6</entry>
+            <entry value="6">Type 7</entry>
+            <entry value="7">Type 8</entry>
+            <entry value="8">Type 9</entry>
+            <entry value="9">Type 10</entry>
+            <entry value="10">Type 11</entry>
+            <entry value="11">Type 12</entry>
+            <entry value="12">Type 13</entry>
+            <entry value="13">Type 14</entry>
+            <entry value="14">Type 15</entry>
+            <entry value="15">Type 16</entry>
+        </list>
+
+        <list nybble="15" title="Butterfly Type E" requirednybble="1" requiredval="6">
+            <entry value="0">Type 1</entry>
+            <entry value="1">Type 2</entry>
+            <entry value="2">Type 3</entry>
+            <entry value="3">Type 4</entry>
+            <entry value="4">Type 5</entry>
+            <entry value="5">Type 6</entry>
+            <entry value="6">Type 7</entry>
+            <entry value="7">Type 8</entry>
+            <entry value="8">Type 9</entry>
+            <entry value="9">Type 10</entry>
+            <entry value="10">Type 11</entry>
+            <entry value="11">Type 12</entry>
+            <entry value="12">Type 13</entry>
+            <entry value="13">Type 14</entry>
+            <entry value="14">Type 15</entry>
+            <entry value="15">Type 16</entry>
+        </list>
+    </sprite>
+
+
+	<sprite string_id="ucology:flower" name="Flower">
+        <checkbox nybble="1" title="Randomize"/>
+        <checkbox nybble="2" title="Affected by Gravity"/>
+        
+        <list nybble="3" title="Flower Type" requirednybble="1" requiredval="0">
+            <entry value="0">Type A</entry>
+            <entry value="1">Type B</entry>
+            <entry value="2">Type C</entry>
+            <entry value="3">Type D</entry>
+            <entry value="4">Type E</entry>
+        </list>
+
+        <checkbox nybble="4-5" mask="1" title="Allow Type A" requirednybble="1" requiredval="1"/>
+        <checkbox nybble="4-5" mask="2" title="Allow Type B" requirednybble="1" requiredval="1"/>
+        <checkbox nybble="4-5" mask="4" title="Allow Type C" requirednybble="1" requiredval="1"/>
+        <checkbox nybble="4-5" mask="8" title="Allow Type D" requirednybble="1" requiredval="1"/>
+        <checkbox nybble="4-5" mask="16" title="Allow Type E" requirednybble="1" requiredval="1"/>
+    </sprite>
+	<sprite string_id="ucology:butterfly" name="Butterfly">
+        <checkbox nybble="1" title="Randomize"/>
+        
+        <list nybble="2" title="Butterfly Type" requirednybble="1" requiredval="0">
+            <entry value="0">Type A</entry>
+            <entry value="1">Type B</entry>
+            <entry value="2">Type C</entry>
+            <entry value="3">Type D</entry>
+            <entry value="4">Type E</entry>
+        </list>
+
+        <checkbox nybble="3-4" mask="1" title="Allow Type A" requirednybble="1" requiredval="1"/>
+        <checkbox nybble="3-4" mask="2" title="Allow Type B" requirednybble="1" requiredval="1"/>
+        <checkbox nybble="3-4" mask="4" title="Allow Type C" requirednybble="1" requiredval="1"/>
+        <checkbox nybble="3-4" mask="8" title="Allow Type D" requirednybble="1" requiredval="1"/>
+        <checkbox nybble="3-4" mask="16" title="Allow Type E" requirednybble="1" requiredval="1"/>
+    </sprite>
 </sprites>

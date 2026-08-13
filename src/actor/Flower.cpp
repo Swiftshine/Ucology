@@ -1,19 +1,18 @@
-#include <telkin/Telkin.h>
-
 #include <actor/ActorCollision.h>
-#include <actor/ActorMgr.h>
 #include <ucology/Ucology.h>
 #include <map/Bg.h>
 #include <red/util/SpriteUtil.h>
-#include <utility/RotShake.h>
-#include <ucology/FlowerSet.h>
 
-#include <cstring>
-
+#include <random/seadGlobalRandom.h>
 
 namespace ucology {
 
 class Flower : public ActorCollision {
+public:
+    enum FlowerType : u8 {
+        A, B, C, D, E,
+        Count
+    };
 public:
     static Profile* cProfile;
     static const ActorBgCollisionCheck::Sensor cBottomSensor;
@@ -28,8 +27,17 @@ public:
     Result doDelete() override;
     void blockHitInit_() override;
 
-    u8 mColorIndex;
+    bool isAllowedInRandomizer(u32 flowerType) const {
+        return (mRandomizerFlags & (1 << flowerType)) != 0;
+    }
+
+    u8 getRandomFlowerType() const;
+
     u8 mFlowerIndex;
+    u8 mFlowerType;
+    bool mAffectedByGravity;
+    bool mIsRandomized;
+    u16 mRandomizerFlags;
 };
 
 Profile* Flower::cProfile = ucology::getRegistrar()->newProfile<Flower>("flower").build();
@@ -42,44 +50,58 @@ Flower::Flower(const ActorCreateParam &param) : ActorCollision(param) {}
 
 ActorBase::Result Flower::create() {
     mFlowerIndex = Bg::instance()->getNextFlowerIndex();
-    mColorIndex = red::SpriteUtil::getNybble1(this);
 
-    mPos.x += 8.0f;
-    Bg::instance()->registerFlower(mPos.x, mPos.y, mPos.z, mColorIndex, mFlowerIndex, 0xFF);
-
-    // assume gravity is enabled
-
-    mBgCheckObj.set(this, &cBottomSensor, &cTopSensor, &cAdjacentSensor);
+    mIsRandomized = static_cast<bool>(red::SpriteUtil::getNybble1(this));
+    mAffectedByGravity = static_cast<bool>(red::SpriteUtil::getNybble2(this));
     
-    for (DirType dir : {
-        DirType::cDirType_Down,
-        DirType::cDirType_Up,
-        DirType::cDirType_Right,
-        DirType::cDirType_Left
-    }) {
-        auto& flag = mBgCheckObj.getSensorFlag(dir);
-        flag.setBit(31);
-        flag.setBit(32);
-        flag.setBit(41);
-        flag.setBit(49);
+    mRandomizerFlags = red::SpriteUtil::getNybble4(this) << 4;
+    mRandomizerFlags |= red::SpriteUtil::getNybble5(this);
+    
+    mPos.x += 8.0f;
+    mPos.y -= 16.0f;
+    
+    if (mIsRandomized) {
+        mFlowerType = getRandomFlowerType();
+    } else {
+        mFlowerType = red::SpriteUtil::getNybble3(this);
+    }
+    
+    Bg::instance()->registerFlower(mPos.x, mPos.y, mPos.z, mFlowerType, mFlowerIndex, 0xFF);
+    
+    if (mAffectedByGravity) {
+        mBgCheckObj.set(this, &cBottomSensor, &cTopSensor, &cAdjacentSensor);
+    
+        for (DirType dir : {
+            DirType::cDirType_Down,
+            DirType::cDirType_Up,
+            DirType::cDirType_Right,
+            DirType::cDirType_Left
+        }) {
+            auto& flag = mBgCheckObj.getSensorFlag(dir);
+            flag.setBit(31);
+            flag.setBit(32);
+            flag.setBit(41);
+            flag.setBit(49);
+        }
+
+        mSpeed = sead::Vector3f(0.0f, 0.0f, 0.0f);
+        mSpeedMax = sead::Vector3f(0.0f, -4.0f, 0.0f);
+        mAccelY = -0.1875f;
     }
 
-    mSpeed = sead::Vector3f(0.0f, 0.0f, 0.0f);
-    mSpeedMax = sead::Vector3f(0.0f, -4.0f, 0.0f);
-    mAccelY = -0.1875f;
-    
     return cResult_Success;
 }
 
 bool Flower::execute() {
     if (!screenOutCheck(0)) {
-        // update collision
-        calcSpeedY_();
-        posMove_();
-        mBgCheckObj.checkBg();
-
-        if (mBgCheckObj.getOutput().checkFoot()) {
-            mSpeed.y = 0.0f;
+        if (mAffectedByGravity) {
+            calcSpeedY_();
+            posMove_();
+            mBgCheckObj.checkBg();
+    
+            if (mBgCheckObj.getOutput().checkFoot()) {
+                mSpeed.y = 0.0f;
+            }
         }
 
         // update graphics
@@ -96,7 +118,37 @@ ActorBase::Result Flower::doDelete() {
 }
 
 void Flower::blockHitInit_() {
-    mSpeed.y = 4.0f;
+    if (mAffectedByGravity) {
+        mSpeed.y = 3.5f;
+    }
+}
+
+u8 Flower::getRandomFlowerType() const {
+    u32 allowedCount = 0;
+
+    for (u32 type = 0; type < FlowerType::Count; type++) {
+        if (isAllowedInRandomizer(type)) {
+            allowedCount++;
+        }
+    }
+
+    if (allowedCount == 0) {
+        return FlowerType::A;
+    }
+
+    u32 selection = sead::GlobalRandom::instance()->getU32(allowedCount);
+
+    for (u32 type = 0; type < FlowerType::Count; type++) {
+        if (isAllowedInRandomizer(type)) {
+            if (selection == 0) {
+                return static_cast<u8>(type);
+            }
+
+            selection--;
+        }
+    }
+
+    return FlowerType::A;
 }
 
 }

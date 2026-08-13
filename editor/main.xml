@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
-<game name="Ucology" version="1.0" description="Isn't nature fascinating?">
-    <file name="spritedata" path="spritedata.xml" />
+<game name="Ucology" version="1.0" description="Isn't nature fascinating?" patchReleaseUrl="https://github.com/Swiftshine/Ucology">
+    <file name="spritedata" path="spritedata.xml"/>
 </game>

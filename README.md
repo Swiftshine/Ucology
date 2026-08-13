@@ -2,9 +2,8 @@
 **Ucology** is a **New Super Mario Bros. U** custom code pack that adds and modifies environmental and ambient actors.
 
 ## Features
-- Expanded Flower Set
-- Checkpoint Flag Modifications
-- Ambient Actors
+- Expanded Level Decorations
+- Misc. ambient actors
 
 ## Setup Guide
 ### Compiling

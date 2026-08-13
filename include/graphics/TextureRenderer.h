@@ -15,7 +15,7 @@ public:
     ~TextureRenderer();
 
     // Address: 0x02500388
-    static void loadTexture(const sead::SafeString& archiveName, const sead::SafeString& textureName, agl::TextureData* texture, nw::g3d::res::ResFile** res, agl::TextureSampler* sampler);
+    static void loadTexture(const sead::SafeString& archiveName, const sead::SafeString& textureName, agl::TextureData* texture, nw::g3d::res::ResFile*& res, agl::TextureSampler* sampler);
 
     virtual void allocLists();
 
