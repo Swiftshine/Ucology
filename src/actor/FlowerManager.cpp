@@ -5,39 +5,13 @@
 #include <red/util/SpriteUtil.h>
 #include <map/Bg.h>
 #include <system/ResMgr.h>
+#include <graphics/FlowerTexMgr.h> 
 
 #include <red/heap/RedCoreHeap.h>
 #include <common/aglTextureData.h>
 #include <nw/g3d.h>
 #include <heap/seadHeapMgr.h>
 
-namespace TextureRenderer {
-    void loadTexture(
-        const sead::SafeString& archiveResName,
-        const sead::SafeString& textureName,
-        void* textureData,  // agl::TextureData*
-        void* pRes,         // nw::g3d::res::ResFile**
-        void* sampler       // agl::TextureSampler*
-    );
-}
-
-namespace TexQuadGrass {
-    void create(
-        void*,
-        agl::TextureData*,
-        agl::TextureData*,
-        agl::TextureData*,
-        agl::TextureData*,
-        agl::TextureData*,
-        agl::TextureData*,
-        agl::TextureData*,
-        agl::TextureData*,
-        agl::TextureData*,
-        agl::TextureData*,
-        int,
-        int
-    );
-}
 
 namespace ucology {
 
@@ -54,8 +28,9 @@ public:
 
     Result create() override;
 
-    sead::SafeArray<agl::TextureData*, 5> mFlowerTextures;
-    nw::g3d::ResFile* mResFile;
+    void initialize(FlowerTexMgr* texMgr);
+
+    sead::SafeArray<agl::TextureData*, 5> mButterflyTextures;
 };
 
 Profile* FlowerManager::cProfile =
@@ -84,86 +59,156 @@ ActorBase::Result FlowerManager::create() {
 
     sInstance = this;
 
-    mResFile = nullptr;
-
-    for (u32 i = 0; i < 5; i++) {
-        mFlowerTextures[i] = new agl::TextureData;
-    }
-
-    sead::CurrentHeapSetter chs(red::RedCoreHeap::instance());
-
-    ResMgr::instance()->loadArchiveRes("obj_hana_kogen", "actor/obj_hana_kogen.szs", nullptr, true);
-
-    for (u32 i = 0; i < 5; i++) {
-        char texName[32] {};
-        snprintf(texName, sizeof(texName), "obj_hana_kogen%02d", i + 1);
-
-        TextureRenderer::loadTexture(
-            "obj_hana_kogen",
-            texName,
-            mFlowerTextures[i],
-            &mResFile,
-            nullptr
-        );        
-    }
-
     return cResult_Success;
 }
 
-void createTexQuadGrass(
-    void* texQuadGrass,
-    agl::TextureData* tex1,
-    agl::TextureData* tex2,
-    agl::TextureData* tex3,
-    agl::TextureData* tex4,
-    agl::TextureData* tex5,
-    agl::TextureData* nml1,
-    agl::TextureData* nml2,
-    agl::TextureData* nml3,
-    agl::TextureData* nml4,
-    agl::TextureData* nml5,
-    int unk1,
-    int unk2
-) {
+void FlowerManager::initialize(FlowerTexMgr* texMgr) {
+    for (u32 i = 0; i < 5; i++) {
+        mButterflyTextures[i] = new agl::TextureData;
+    }
+    
+    // todo: use ActorAdditionalHeap
+    sead::CurrentHeapSetter chs(red::RedCoreHeap::instance());
+    
+
+    // initial setup
+
+    nw::g3d::ResFile** res = &texMgr->mResFile;
+    FlowerTexMgr::DecorationSettings& settings = texMgr->mSettings;
+    texMgr->mResFile = nullptr;
+
+    settings._36 = false;
+    settings._c = 0.0f;
+    settings._33 = false;
+    settings._35 = false;
+    settings.mIsBig = false;
+    settings.mHasButterflies = true;
+    settings._30 = 0;
+
+    for (u32 i = 0; i < 4; i++) {
+        settings._0[i + 8] = 0;
+    }
+
+    // force load our custom textures
+
+    ResMgr::instance()->loadArchiveRes("obj_hana_custom", "actor/obj_hana_custom.szs", nullptr, true);
+    
+    TextureRenderer::loadTexture("obj_hana_custom", "flower_0_000", &texMgr->mFlowerTextures[0], res, nullptr);
+    TextureRenderer::loadTexture("obj_hana_custom", "flower_0_001", &texMgr->mFlowerTextures[1], res, nullptr);
+    TextureRenderer::loadTexture("obj_hana_custom", "flower_0_002", &texMgr->mFlowerTextures[2], res, nullptr);
+    TextureRenderer::loadTexture("obj_hana_custom", "flower_0_000", &texMgr->mFlowerTextures[3], res, nullptr);
+    TextureRenderer::loadTexture("obj_hana_custom", "flower_0_000", &texMgr->mFlowerTextures[4], res, nullptr);
+    TextureRenderer::loadTexture("obj_hana_custom", "flower_0_xxx_nml", &texMgr->mFlowerTextureNormal, res, nullptr);
+    
+
+    texMgr->mFlowerRenderer.create(
+        &texMgr->mFlowerTextures[0],
+        &texMgr->mFlowerTextures[1],
+        &texMgr->mFlowerTextures[2],
+        &texMgr->mFlowerTextures[3],
+        &texMgr->mFlowerTextures[4],
+        &texMgr->mFlowerTextureNormal,
+        &texMgr->mFlowerTextureNormal,
+        &texMgr->mFlowerTextureNormal,
+        &texMgr->mFlowerTextureNormal,
+        &texMgr->mFlowerTextureNormal,
+        3,
+        -1
+    );
+
+    texMgr->mFlowerRenderer.mDecorationType = TexQuadGrass::DecorationType::cDecoration_Flower;
+    
+    TextureRenderer::loadTexture("obj_hana_custom", "stem_0_000", &texMgr->mFlowerStalkTexture, res, nullptr);
+    TextureRenderer::loadTexture("obj_hana_custom", "stem_0_xxx_nml", &texMgr->mFlowerStalkTextureNormal, res, nullptr);
+
+    texMgr->mFlowerStalkRenderer.create(
+        &texMgr->mFlowerStalkTexture,
+        &texMgr->mFlowerStalkTexture,
+        &texMgr->mFlowerStalkTexture,
+        &texMgr->mFlowerStalkTexture,
+        &texMgr->mFlowerStalkTexture,
+        &texMgr->mFlowerStalkTextureNormal,
+        &texMgr->mFlowerStalkTextureNormal,
+        &texMgr->mFlowerStalkTextureNormal,
+        &texMgr->mFlowerStalkTextureNormal,
+        &texMgr->mFlowerStalkTextureNormal,
+        3,
+        -1
+    );
+
+    texMgr->mFlowerStalkRenderer.mDecorationType = TexQuadGrass::DecorationType::cDecoration_FlowerStem;
+
+    ResMgr::instance()->loadArchiveRes("obj_kusa", "actor/obj_kusa.szs", nullptr, true);
+    TextureRenderer::loadTexture("obj_kusa", "obj_kusa01", &texMgr->mGrassTextures[0], res, nullptr);
+    TextureRenderer::loadTexture("obj_kusa", "obj_kusa02", &texMgr->mGrassTextures[1], res, nullptr);
+    TextureRenderer::loadTexture("obj_kusa", "obj_kusa03", &texMgr->mGrassTextures[2], res, nullptr);
+    TextureRenderer::loadTexture("obj_kusa", "obj_kusa04", &texMgr->mGrassTextures[3], res, nullptr);
+    TextureRenderer::loadTexture("obj_kusa", "obj_kusa05", &texMgr->mGrassTextures[4], res, nullptr);
+    
+    TextureRenderer::loadTexture("obj_kusa", "obj_kusa01_nml", &texMgr->mGrassTextureNormals[0], res, nullptr);
+    TextureRenderer::loadTexture("obj_kusa", "obj_kusa02_nml", &texMgr->mGrassTextureNormals[1], res, nullptr);
+    TextureRenderer::loadTexture("obj_kusa", "obj_kusa03_nml", &texMgr->mGrassTextureNormals[2], res, nullptr);
+    TextureRenderer::loadTexture("obj_kusa", "obj_kusa04_nml", &texMgr->mGrassTextureNormals[3], res, nullptr);
+    TextureRenderer::loadTexture("obj_kusa", "obj_kusa05_nml", &texMgr->mGrassTextureNormals[4], res, nullptr);
+    
+    texMgr->mGrassRenderer.create(
+        &texMgr->mGrassTextures[0],
+        &texMgr->mGrassTextures[1],
+        &texMgr->mGrassTextures[2],
+        &texMgr->mGrassTextures[3],
+        &texMgr->mGrassTextures[4],
+        &texMgr->mGrassTextureNormals[0],
+        &texMgr->mGrassTextureNormals[1],
+        &texMgr->mGrassTextureNormals[2],
+        &texMgr->mGrassTextureNormals[3],
+        &texMgr->mGrassTextureNormals[4],
+        3,
+        -1
+    );
+
+    texMgr->mGrassRenderer.mDecorationType = TexQuadGrass::DecorationType::cDecoration_Grass;
+
+    TextureRenderer::loadTexture("obj_hana_custom", "butterfly_000", mButterflyTextures[0], res, nullptr);
+    TextureRenderer::loadTexture("obj_hana_custom", "butterfly_001", mButterflyTextures[1], res, nullptr);
+    TextureRenderer::loadTexture("obj_hana_custom", "butterfly_002", mButterflyTextures[2], res, nullptr);
+    TextureRenderer::loadTexture("obj_hana_custom", "butterfly_003", mButterflyTextures[3], res, nullptr);
+    TextureRenderer::loadTexture("obj_hana_custom", "butterfly_004", mButterflyTextures[4], res, nullptr);
+
+    texMgr->mButterflyRenderer.create(
+        mButterflyTextures[0],
+        mButterflyTextures[1],
+        mButterflyTextures[2],
+        mButterflyTextures[3],
+        mButterflyTextures[4],
+        &texMgr->mGrassTextureNormals[0], // this is what the game does
+        &texMgr->mGrassTextureNormals[1],
+        &texMgr->mGrassTextureNormals[2],
+        &texMgr->mGrassTextureNormals[3],
+        &texMgr->mGrassTextureNormals[4],
+        3,
+        -1
+    );
+
+    settings._2c = 0;
+    settings._34 = false;
+    
+    texMgr->mButterflyRenderer.mDecorationType = TexQuadGrass::DecorationType::cDecoration_Butterfly;
+
+    texMgr->updateGrassAndFlowers(true);
+}
+
+void initializeFlowers(FlowerTexMgr* texMgr) {
     if (FlowerManager::sInstance == nullptr) {
-        // use the original textures
-        TexQuadGrass::create(
-            texQuadGrass,
-            tex1,
-            tex2,
-            tex3,
-            tex4,
-            tex5,
-            nml1,
-            nml2,
-            nml3,
-            nml4,
-            nml5,
-            unk1,
-            unk2
-        );
+        // let the original code handle it
+        texMgr->initialize();
         return;
     }
 
-    FlowerManager* mgr = FlowerManager::sInstance;
+    FlowerManager::sInstance->initialize(texMgr);
 
-    TexQuadGrass::create(
-        texQuadGrass,
-        mgr->mFlowerTextures[0],
-        mgr->mFlowerTextures[1],
-        mgr->mFlowerTextures[2],
-        mgr->mFlowerTextures[3],
-        mgr->mFlowerTextures[4],
-        nml1,
-        nml2,
-        nml3,
-        nml4,
-        nml5,
-        unk1,
-        unk2
-    );
 }
 
-tBranch(0x0268A620, createTexQuadGrass, tk::BranchType::bl);
+
+tBranch(0x0268B678, initializeFlowers, tk::BranchType::b);
 
 } // namespace ucology

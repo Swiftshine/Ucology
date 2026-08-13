@@ -4,13 +4,17 @@
 
 class TexQuadGrass : public TextureRenderer {
 public:
+    enum DecorationType {
+        cDecoration_Grass,
+        cDecoration_FlowerStem,
+        cDecoration_Flower,
+        cDecoration_Butterfly
+    };
+public:
     TexQuadGrass();
 
     // Address: 0x02503ABC
     void create(agl::TextureData* tex1, agl::TextureData* tex2, agl::TextureData* tex3, agl::TextureData* tex4, agl::TextureData* tex5, agl::TextureData* nml1, agl::TextureData* nml2, agl::TextureData* nml3, agl::TextureData* nml4, agl::TextureData* nml5, u32, s32);
-
-    // Address: 0x02686428
-    void updateGrassAndFlowers(bool init);
 
     agl::TextureData* getTexture4() const {
         return mTexture4;
@@ -67,7 +71,7 @@ public:
     void setTextureNormal5(agl::TextureData* tex) {
         mTexture5Normal = tex;
     }
-protected:
+
     u32 _9C;
     agl::TextureData* mTexture4;
     agl::TextureData* mTexture5;
@@ -76,5 +80,6 @@ protected:
     agl::TextureData* mTexture3Normal;
     agl::TextureData* mTexture4Normal;
     agl::TextureData* mTexture5Normal;
-    u8 _BC[0xBBC];
+    u8 mDecorationType;
+    u8 _BD[0xBBB];
 };

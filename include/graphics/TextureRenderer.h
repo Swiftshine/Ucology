@@ -15,7 +15,7 @@ public:
     ~TextureRenderer();
 
     // Address: 0x02500388
-    void loadTexture(const sead::SafeString& archiveName, const sead::SafeString& textureName, agl::TextureData* texture, nw::g3d::res::ResFile** res, agl::TextureSampler* sampler);
+    static void loadTexture(const sead::SafeString& archiveName, const sead::SafeString& textureName, agl::TextureData* texture, nw::g3d::res::ResFile** res, agl::TextureSampler* sampler);
 
     virtual void allocLists();
 
@@ -42,7 +42,7 @@ public:
     void setTexture3(agl::TextureData* tex) {
         mTexture1 = tex;
     }
-protected:
+
     u32 _30;
     agl::TextureData* mTexture1;
     agl::TextureData* mTexture2;
@@ -52,7 +52,7 @@ protected:
     u32 _50[2];
     sead::Buffer<float> _58;
     sead::Buffer<float> _60;
-    u32 _68;
+    u32 _68[2];
     sead::Buffer<int> _70;
     u32 _78[2];
     u32 _80[2];

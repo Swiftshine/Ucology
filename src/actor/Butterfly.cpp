@@ -1,6 +1,7 @@
 #include <actor/Actor.h>
 #include <ucology/Ucology.h>
 #include <map/Bg.h>
+#include <red/util/SpriteUtil.h>
 
 namespace ucology {
 
@@ -20,7 +21,7 @@ Profile* Butterfly::cProfile = ucology::getRegistrar()->newProfile<Butterfly>("b
 Butterfly::Butterfly(const ActorCreateParam &param) : Actor(param) {}
 
 ActorBase::Result Butterfly::create() {
-    Bg::instance()->registerButterfly(mPos.x, mPos.y, mPos.z, 0, 0xFF, 0);
+    Bg::instance()->registerButterfly(mPos.x, mPos.y, mPos.z, red::SpriteUtil::getNybble1(this), 0xFF, 0);
     return cResult_Success;
 }
 
