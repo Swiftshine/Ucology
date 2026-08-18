@@ -26,7 +26,7 @@ public:
     /// @return If the value has reached the target value.
     bool ease(float& out) {
         if (!mInited) {
-            tk::fatal("attempted to ease with an easier that has not been inited");
+            tk::fatal("attempted to ease with an easer that has not been inited");
             return true;
         }
 
