@@ -20,3 +20,5 @@ _ZN8RotShake4moveEv = 0x029e2d34;
 _ZN12FlowerTexMgr10initializeEv = 0x0268a038;
 
 _ZN12FlowerTexMgr21updateGrassAndFlowersEb = 0x02686428;
+
+_ZN5Actor11calcSpeedX_Ev = 0x020013e8;
