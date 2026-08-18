@@ -1,7 +1,5 @@
 // wip!
 // BUG: y position too high
-// TODO: PLAYER SENSING
-// TODO: FLY STATE
 // TODO: OTHER MODELS
 
 #include <actor/ActorState.h>
@@ -59,6 +57,25 @@ public:
         float angle = mDirection == cDirType_Right ? 90.0f : -90.0f;
         mAngle.y() = sead::Mathf::deg2idx(angle);
     }
+
+    bool isPlayerClose() {
+        const float PLAYER_DISTANCE_THRESHOLD = 16.0f * 5.0f;
+        
+        sead::Vector2f dist;
+
+        if (searchNearPlayer(dist) == -1) {
+            // no player found
+            return false;
+        }
+
+        return dist.length() <= PLAYER_DISTANCE_THRESHOLD;
+    }
+
+    void changeStateIfPlayerClose() {
+        if (isPlayerClose()) {
+            changeState(StateID_Fly);
+        }
+    }
 private:
     AnimModel* mModel;
 
@@ -67,6 +84,9 @@ private:
     Easer mEaser;
     HopState mHopState = HopState::Starting;
     float mLerpRatio;
+
+    // fly info
+    u32 mFlyWaitCounter;
 };
 
 const ActorCreateInfo Bird::cCreateInfo = {
@@ -135,6 +155,7 @@ void Bird::executeState_Idle() {
     }
 
     updateModel();
+    changeStateIfPlayerClose();
 }
 
 void Bird::finalizeState_Idle() { }
@@ -159,6 +180,7 @@ void Bird::executeState_ChangeDirection() {
     // todo: also check if the player is nearby and change the state anyway if so
 
     updateModel();
+    changeStateIfPlayerClose();
 }
 
 void Bird::finalizeState_ChangeDirection() { }
@@ -214,15 +236,32 @@ void Bird::executeState_Hop() {
     }
 
     updateModel();
+    changeStateIfPlayerClose();
 }
 
 void Bird::finalizeState_Hop() { }
 
 // State: Fly
-void Bird::initializeState_Fly() { }
+void Bird::initializeState_Fly() {
+    mModel->playSklAnim("Fly");
+    mModel->getSklAnim(0)->getFrameCtrl().setPlayMode(FrameCtrl::cMode_Repeat);
+    mFlyWaitCounter = 0;
+}
 
 void Bird::executeState_Fly() {
+    // todo: maybe make the movement more natural?
+    const u32 FLY_AFTER_FRAMES = 8;
+
     updateModel();
+
+    if (mFlyWaitCounter >= FLY_AFTER_FRAMES) {
+        mPos.x += mDirection == cDirType_Right ? mSpeed.x : -mSpeed.x;
+        mPos.y += mSpeed.y;
+        mSpeed.x += 0.05f;
+        mSpeed.y += 0.05f;
+    } else {
+        mFlyWaitCounter++;
+    }
 }
 
 void Bird::finalizeState_Fly() { }
