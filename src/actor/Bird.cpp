@@ -1,6 +1,6 @@
 // wip!
 // BUG: y position too high
-// TODO: OTHER MODELS
+// TODO: fix shading on models. all models are currently unshaded
 
 #include <actor/ActorState.h>
 #include <actor/AttentionLookat.h>
@@ -9,18 +9,25 @@
 #include <ucology/Easing.h>
 #include <graphics/AnimModel.h>
 #include <random/seadGlobalRandom.h>
+#include <red/util/SpriteUtil.h>
 
 namespace ucology {
 
 class Bird : public ActorMultiState {
 public:
-    enum BirdType {
+    enum BirdType : u8 {
         // WhiteBird,
-        // Parrot,
         BlueJay,
         Rosefinch,
-        // Lorikeet,
-        // CrestedTit,
+        Lorikeet,
+        Parrot,
+        CrestedTit,
+    };
+
+    enum AttentionSettings : u8 {
+        DoNotTake,
+        TakeWhileFlying,
+        TakeAlways,
     };
 
     enum class HopState {
@@ -46,18 +53,11 @@ public:
     DECLARE_STATE_ID(Bird, Hop);
     DECLARE_STATE_ID(Bird, Fly);
 
-    void updateLookat() {
-        if (mAttentionLookat == nullptr) {
-            return;
-        }
-
-        sead::Vector2f& pos = mAttentionLookat->getPos();
-        pos.x = mPos.x;
-        pos.y = mPos.y;
-    }
+    void updateAttention();
 
     void updateModel() const {
         const float SCALE_FACTOR = 0.1f;
+
         sead::Vector3f scale = mScale;
         scale.multScalar(SCALE_FACTOR);
         mModel->update(mPos, mAngle, scale);
@@ -73,7 +73,6 @@ public:
         const float PLAYER_DISTANCE_THRESHOLD = 16.0f * 5.0f;
         
         sead::Vector2f dist;
-
         if (searchNearPlayer(dist) == -1) {
             // no player found
             return false;
@@ -90,10 +89,12 @@ public:
 private:
     // model info
     AnimModel* mModel;
+    BirdType mBirdType;
 
     // attention info
     AttentionLookat* mAttentionLookat;
-    
+    AttentionSettings mAttentionSettings;
+
     // hop info
     float mHopTargetX, mBaseline;
     Easer mEaser;
@@ -109,7 +110,7 @@ const ActorCreateInfo Bird::cCreateInfo = {
 };
 
 Profile* Bird::cProfile = ucology::getRegistrar()->newProfile<Bird>("bird")
-    .resources<"uco_blue_jay">(ProfileInfo::cResType_Course)
+    .resources<"uco_blue_jay", "uco_rosefinch", "uco_lorikeet", "uco_parrot", "uco_crested_tit">(ProfileInfo::cResType_Course)
     .flag(Profile::cFlag_DrawCullCheck)
     .createInfo(&cCreateInfo)
     .build();
@@ -133,14 +134,35 @@ Bird::~Bird() { }
 ActorBase::Result Bird::create() {
     // model setup
     mScale = sead::Vector3f(1.0f, 1.0f, 1.0f);
-    mModel = AnimModel::create("uco_blue_jay", "uco_blue_jay", 3);
+    mBirdType = static_cast<BirdType>(red::SpriteUtil::getNybble1(this));
+
+    const char* modelNames[] = {
+        "uco_blue_jay",
+        "uco_rosefinch",
+        "uco_lorikeet",
+        "uco_parrot",
+        "uco_crested_tit"
+    };
+
+    mModel = AnimModel::create(modelNames[mBirdType], modelNames[mBirdType], 3, 1);
+
+    if (mBirdType == BirdType::CrestedTit) {
+        bool spotted = static_cast<bool>(red::SpriteUtil::getNybble2(this));
+
+        if (spotted) {
+            mModel->playTexAnim("crested_tit_texture");
+            mModel->getTexAnim(0)->getFrameCtrl().setFrame(1);
+            mModel->getTexAnim(0)->getFrameCtrl().setRate(0.0f);
+        }
+    }
+
     changeDirection();
 
+
     // attention setup
-    // todo: get this from a nybble
-    bool takePlayerAttention = true;
-    
-    if (takePlayerAttention) {
+    mAttentionSettings = static_cast<AttentionSettings>(red::SpriteUtil::getNybble3(this));
+
+    if (mAttentionSettings != AttentionSettings::DoNotTake) {
         mAttentionLookat = new AttentionLookat(mActorUniqueID);
         AttentionMgr::instance()->entry(*mAttentionLookat);
     }
@@ -154,7 +176,7 @@ bool Bird::execute() {
 
     executeState();
 
-    updateLookat();
+    updateAttention();
     updateModel();
 
     if (mStateMgr.getStateID() != &StateID_Fly) {
@@ -288,4 +310,27 @@ void Bird::executeState_Fly() {
 
 void Bird::finalizeState_Fly() { }
 
+void Bird::updateAttention() {
+        if (mAttentionLookat == nullptr) {
+            return;
+        }
+
+        switch (mAttentionSettings) {
+            case AttentionSettings::DoNotTake: return;
+            case AttentionSettings::TakeWhileFlying: {
+                if (mStateMgr.getStateID() != &StateID_Fly) {
+                    return;
+                }
+
+                // intentional fallthrough
+            }
+            
+            case AttentionSettings::TakeAlways: {
+                sead::Vector2f& pos = mAttentionLookat->getPos();
+                pos.x = mPos.x;
+                pos.y = mPos.y;
+                break;
+            }
+        }
+    }
 }

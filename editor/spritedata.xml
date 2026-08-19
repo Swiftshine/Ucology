@@ -308,5 +308,21 @@
     
     <sprite string_id="ucology:crab" name="Crab"></sprite>
 
-    <sprite string_id="ucology:bird" name="Bird"></sprite>
+    <sprite string_id="ucology:bird" name="Bird">
+        <list nybble="1" title="Bird Type">
+            <entry value="0">Blue Jay</entry>
+            <entry value="1">Rosefinch</entry>
+            <entry value="2">Lorikeet</entry>
+            <entry value="3">Parrot</entry>
+            <entry value="4">Crested Tit</entry>
+        </list>
+
+        <checkbox nybble="2" title="Spotted Texture" requirednybble="1" requiredval="4"/>
+        
+        <list nybble="3" title="Take Player Attention" comment="The player will look at the bird when nearby.">
+            <entry value="0">Never</entry>
+            <entry value="1">Only while flying</entry>
+            <entry value="2">Always</entry>
+        </list>
+    </sprite>
 </sprites>
