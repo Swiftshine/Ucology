@@ -2,6 +2,7 @@
 // BUG: y position too high
 // BUG: bird does not turn around when colliding with a wall
 // TODO: fix shading on models. all models are currently unshaded
+// FUTURE FEATURE: fly on gamepad touch. not a priority however
 
 #include <actor/ActorState.h>
 #include <actor/AttentionLookat.h>
@@ -16,7 +17,7 @@
 namespace ucology {
 
 class Bird : public ActorMultiState {
-public:
+private:
     enum BirdType : u8 {
         // WhiteBird,
         BlueJay,
@@ -161,7 +162,6 @@ ActorBase::Result Bird::create() {
     }
 
     changeDirection();
-
 
     // attention setup
     mPlayerAttentionSettings = static_cast<AttentionSettings>(red::SpriteUtil::getNybble3(this));
