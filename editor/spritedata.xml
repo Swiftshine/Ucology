@@ -334,5 +334,6 @@
         </list>
 
         <value nybble="2-3" title="Location ID" comment="The location ID the player must be in to look at the target." requirednybble="1" requiredval="1-2"/>
+        <value nybble="4-5" title="Event ID" comment="If this value is nonzero, the player will look at the target while this event is active. Otherwise, the player will always look at the target if the specified condition is met."/>
     </sprite>
 </sprites>
