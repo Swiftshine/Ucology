@@ -42,7 +42,7 @@ public:
     static const ActorBgCollisionCheck::Sensor cAdjacentSensor;
 
     Bird(const ActorCreateParam& param);
-    ~Bird() override;
+    ~Bird() override = default;
 
     Result create() override;
     bool preExecute() override;
@@ -130,8 +130,6 @@ Bird::Bird(const ActorCreateParam& param)
     : ActorMultiState(param)
     , mPlayerAttention(nullptr)
 { }
-
-Bird::~Bird() { }
 
 ActorBase::Result Bird::create() {
     // model setup
