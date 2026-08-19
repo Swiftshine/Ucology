@@ -305,8 +305,6 @@
         <checkbox nybble="3-4" mask="8" title="Allow Type D" requirednybble="1" requiredval="1"/>
         <checkbox nybble="3-4" mask="16" title="Allow Type E" requirednybble="1" requiredval="1"/>
     </sprite>
-    
-    <sprite string_id="ucology:crab" name="Crab"></sprite>
 
     <sprite string_id="ucology:bird" name="Bird">
         <list nybble="1" title="Bird Type">
