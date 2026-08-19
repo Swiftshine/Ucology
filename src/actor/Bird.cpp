@@ -1,13 +1,15 @@
 // wip!
 // BUG: y position too high
+// BUG: bird does not turn around when colliding with a wall
 // TODO: fix shading on models. all models are currently unshaded
 
 #include <actor/ActorState.h>
 #include <actor/AttentionLookat.h>
 #include <actor/AttentionMgr.h>
+#include <game/Quake.h>
+#include <graphics/AnimModel.h>
 #include <ucology/Ucology.h>
 #include <ucology/Easing.h>
-#include <graphics/AnimModel.h>
 #include <random/seadGlobalRandom.h>
 #include <red/util/SpriteUtil.h>
 
@@ -45,6 +47,7 @@ public:
     ~Bird() override;
 
     Result create() override;
+    bool preExecute() override;
     bool execute() override;
     bool draw() override;
 
@@ -53,7 +56,7 @@ public:
     DECLARE_STATE_ID(Bird, Hop);
     DECLARE_STATE_ID(Bird, Fly);
 
-    void updateAttention();
+    void updatePlayerAttention();
 
     void updateModel() const {
         const float SCALE_FACTOR = 0.1f;
@@ -92,8 +95,8 @@ private:
     BirdType mBirdType;
 
     // attention info
-    AttentionLookat* mAttentionLookat;
-    AttentionSettings mAttentionSettings;
+    AttentionLookat* mPlayerAttention;
+    AttentionSettings mPlayerAttentionSettings;
 
     // hop info
     float mHopTargetX, mBaseline;
@@ -103,6 +106,7 @@ private:
 
     // fly info
     u32 mFlyWaitCounter;
+    bool mWasQuaked;
 };
 
 const ActorCreateInfo Bird::cCreateInfo = {
@@ -126,7 +130,7 @@ CREATE_STATE_ID(Bird, Hop);
 
 Bird::Bird(const ActorCreateParam& param)
     : ActorMultiState(param)
-    , mAttentionLookat(nullptr)
+    , mPlayerAttention(nullptr)
 { }
 
 Bird::~Bird() { }
@@ -160,25 +164,67 @@ ActorBase::Result Bird::create() {
 
 
     // attention setup
-    mAttentionSettings = static_cast<AttentionSettings>(red::SpriteUtil::getNybble3(this));
+    mPlayerAttentionSettings = static_cast<AttentionSettings>(red::SpriteUtil::getNybble3(this));
 
-    if (mAttentionSettings != AttentionSettings::DoNotTake) {
-        mAttentionLookat = new AttentionLookat(mActorUniqueID);
-        AttentionMgr::instance()->entry(*mAttentionLookat);
+    if (mPlayerAttentionSettings != AttentionSettings::DoNotTake) {
+        mPlayerAttention = new AttentionLookat(mActorUniqueID);
+        AttentionMgr::instance()->entry(*mPlayerAttention);
     }
+
+    // physics setup
+    mBgCheckObj.set(this, &cBottomSensor, &cTopSensor, &cAdjacentSensor);
+    mAccelY = -0.1875f;
+    mSpeedMax = sead::Vector3f(0.0f, -4.0f, 0.0f);
+    mWasQuaked = false;
 
     changeState(StateID_Idle);
     return cResult_Success;
 }
 
+bool Bird::preExecute() {
+    // fly away on quake
+
+    u32 quakeFlag = Quake::instance()->getFlag();
+
+    bool pow = (quakeFlag & 8) != 0;
+    bool multiGroundPound = (quakeFlag & 0x10) != 0;
+
+    if (pow || multiGroundPound) {
+        mWasQuaked = true;
+    }
+
+    return true;
+}
+
 bool Bird::execute() {
-    // todo: physics handling here
+    // physics
+    if (mStateMgr.getStateID() != &StateID_Fly) {
+        calcSpeedY_();
+        posMove_();
+        mBgCheckObj.checkBg();
+        
+        if (mWasQuaked) {
+            // wait until we're on the floor again to fly away
+            if (mBgCheckObj.getOutput().checkFoot()) {
+                mSpeed.y = 0.0f;
+                changeState(StateID_Fly);
+            }
+        }
 
-    executeState();
+        if (mBgCheckObj.checkWall(cDirType_Left) || mBgCheckObj.checkWall(cDirType_Right)) {
+            // turn around
+            changeDirection(); 
+        }
+    }
 
-    updateAttention();
+    // attention
+    updatePlayerAttention();
+
+    // model
     updateModel();
-
+    
+    // state
+    executeState();
     if (mStateMgr.getStateID() != &StateID_Fly) {
         changeStateIfPlayerClose();
     }
@@ -237,8 +283,6 @@ void Bird::finalizeState_ChangeDirection() { }
 // State: Hop
 void Bird::initializeState_Hop() {
     const float LATERAL_HOP_DISTANCE = 4.0f;
-
-    // todo: account for sloped terrain
 
     mBaseline = mPos.y;
     mHopTargetX = mPos.x + (mDirection == cDirType_Right ? 1.0f : -1.0f) * LATERAL_HOP_DISTANCE;
@@ -302,7 +346,7 @@ void Bird::executeState_Fly() {
         mPos.x += mDirection == cDirType_Right ? mSpeed.x : -mSpeed.x;
         mPos.y += mSpeed.y;
         mSpeed.x += 0.05f;
-        mSpeed.y += 0.05f;
+        mSpeed.y += 0.07f;
     } else {
         mFlyWaitCounter++;
     }
@@ -310,12 +354,12 @@ void Bird::executeState_Fly() {
 
 void Bird::finalizeState_Fly() { }
 
-void Bird::updateAttention() {
-        if (mAttentionLookat == nullptr) {
+void Bird::updatePlayerAttention() {
+        if (mPlayerAttention == nullptr) {
             return;
         }
 
-        switch (mAttentionSettings) {
+        switch (mPlayerAttentionSettings) {
             case AttentionSettings::DoNotTake: return;
             case AttentionSettings::TakeWhileFlying: {
                 if (mStateMgr.getStateID() != &StateID_Fly) {
@@ -326,7 +370,7 @@ void Bird::updateAttention() {
             }
             
             case AttentionSettings::TakeAlways: {
-                sead::Vector2f& pos = mAttentionLookat->getPos();
+                sead::Vector2f& pos = mPlayerAttention->getPos();
                 pos.x = mPos.x;
                 pos.y = mPos.y;
                 break;

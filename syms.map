@@ -27,3 +27,5 @@ _ZN15AttentionLookatC1E13ActorUniqueID = 0x0200ca58;
 _ZN12AttentionMgr9sInstanceE = 0x101c30e8;
 _ZN15AttentionLookatD1Ev = 0x0200cb10;
 _ZN12AttentionMgr5entryERK15AttentionLookat = 0x0200cc8c;
+
+_ZN5Quake9sInstanceE = 0x101d1660;
