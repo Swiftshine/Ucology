@@ -2,8 +2,9 @@
 **Ucology** is a **New Super Mario Bros. U** custom code pack that adds and modifies environmental and ambient actors.
 
 ## Features
-- Expanded Level Decorations
+- Expanded level decorations
 - Misc. ambient actors
+- Configurable player attention targets
 
 ### Adding Custom Decoration Types
 When using the decoration manager actor, the user can select either the vanilla decorations or a custom configuration. With a custom configuration, up to **five** different textures can be used per zone.
