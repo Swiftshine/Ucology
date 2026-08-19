@@ -17,7 +17,8 @@ namespace ucology {
 class PlayerLookTag : public Actor {
 private:
     enum LookAt : u8 {
-        Target,
+        Position,
+        PositionWhileInScreen,
         Screen
     };
 public:
@@ -29,10 +30,25 @@ public:
 
     Result create() override;
     bool execute() override;
+
+    void takePlayerAttention() {
+        AttentionMgr::instance()->entry(mPlayerAttention);
+    }
+
+    void updatePlayerAttention() {
+        sead::Vector2f& pos = mPlayerAttention.getPos();
+        pos.x = mPos.x;
+        pos.y = mPos.y;
+    }
+
+    void releasePlayerAttention() {
+        AttentionMgr::instance()->release(mPlayerAttention);
+    }
 private:
     LookAt mPlayerLookType;
-    AttentionLookat* mPlayerAttention;
+    AttentionLookat mPlayerAttention;
     u8 mTargetLocationID;
+    bool mHasPlayerAttention;
 };
 
 const ActorCreateInfo PlayerLookTag::cCreateInfo = {
@@ -45,24 +61,28 @@ Profile* PlayerLookTag::cProfile = ucology::getRegistrar()->newProfile<PlayerLoo
 
 PlayerLookTag::PlayerLookTag(const ActorCreateParam& param)
     : Actor(param)
-    , mPlayerAttention(nullptr)
+    , mPlayerAttention(mActorUniqueID)
 { }
 
 ActorBase::Result PlayerLookTag::create() {
     mPlayerLookType = static_cast<LookAt>(red::SpriteUtil::getNybble1(this));
     mTargetLocationID = static_cast<u8>(red::SpriteUtil::getNybbleRange(this, 2, 3));
 
-    if (mPlayerLookType == LookAt::Target) {
-        mPlayerAttention = new AttentionLookat(mActorUniqueID);
-        AttentionMgr::instance()->entry(*mPlayerAttention);
+    switch (mPlayerLookType) {
+        case LookAt::Position: {
+            takePlayerAttention();
+            updatePlayerAttention();
+            mHasPlayerAttention = true;
+            break;
+        }
 
-        sead::Vector2f& pos = mPlayerAttention->getPos();
-        pos.x = mPos.x;
-        pos.y = mPos.y;
-    } else if (mPlayerLookType == LookAt::Screen) {
-        if (mTargetLocationID == 0) {
-            tk::fatal("PlayerLookTag - Must set a non-zero location ID to make the player look at the screen");
-            return cResult_Failed;
+        case LookAt::PositionWhileInScreen:
+        case LookAt::Screen: {
+            mHasPlayerAttention = false;
+            if (mTargetLocationID == 0) {
+                tk::fatal("PlayerLookTag - Must set a non-zero location ID to make the player look at the target");
+                return cResult_Failed;
+            }
         }
     }
 
@@ -70,8 +90,11 @@ ActorBase::Result PlayerLookTag::create() {
 }
 
 bool PlayerLookTag::execute() {
-    if (mPlayerLookType != LookAt::Screen) {
-        return true;
+    if (mPlayerLookType == LookAt::Position || mPlayerLookType == LookAt::PositionWhileInScreen) {
+        updatePlayerAttention();
+        if (mPlayerLookType == LookAt::Position) {
+            return true;
+        }
     }
 
     for (s32 i = 0; i < PlayerMgr::instance()->getNum(); i++) {
@@ -91,8 +114,18 @@ bool PlayerLookTag::execute() {
         }
 
         if (locationBounds.isInside(player->getPos2D())) {
-            // look at the screen
-            player->setClampFaceRot();
+            if (mPlayerLookType == LookAt::Screen) {
+                // look at the screen
+                player->setClampFaceRot();
+            } else if (mPlayerLookType == LookAt::PositionWhileInScreen) {
+                if (!mHasPlayerAttention) {
+                    takePlayerAttention();
+                    mHasPlayerAttention = true;
+                }
+            }
+        } else if (mPlayerLookType == LookAt::PositionWhileInScreen && mHasPlayerAttention) {
+            releasePlayerAttention();
+            mHasPlayerAttention = false;
         }
     }
     
