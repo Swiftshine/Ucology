@@ -3,10 +3,11 @@
 // TODO: OTHER MODELS
 
 #include <actor/ActorState.h>
+#include <actor/AttentionLookat.h>
+#include <actor/AttentionMgr.h>
 #include <ucology/Ucology.h>
 #include <ucology/Easing.h>
 #include <graphics/AnimModel.h>
-
 #include <random/seadGlobalRandom.h>
 
 namespace ucology {
@@ -16,8 +17,8 @@ public:
     enum BirdType {
         // WhiteBird,
         // Parrot,
-        // BlueJay,
-        // Rosefinch,
+        BlueJay,
+        Rosefinch,
         // Lorikeet,
         // CrestedTit,
     };
@@ -34,7 +35,7 @@ public:
     static const ActorBgCollisionCheck::Sensor cAdjacentSensor;
 
     Bird(const ActorCreateParam& param);
-    ~Bird() override = default;
+    ~Bird() override;
 
     Result create() override;
     bool execute() override;
@@ -44,6 +45,16 @@ public:
     DECLARE_STATE_ID(Bird, ChangeDirection);
     DECLARE_STATE_ID(Bird, Hop);
     DECLARE_STATE_ID(Bird, Fly);
+
+    void updateLookat() {
+        if (mAttentionLookat == nullptr) {
+            return;
+        }
+
+        sead::Vector2f& pos = mAttentionLookat->getPos();
+        pos.x = mPos.x;
+        pos.y = mPos.y;
+    }
 
     void updateModel() const {
         const float SCALE_FACTOR = 0.1f;
@@ -77,8 +88,12 @@ public:
         }
     }
 private:
+    // model info
     AnimModel* mModel;
 
+    // attention info
+    AttentionLookat* mAttentionLookat;
+    
     // hop info
     float mHopTargetX, mBaseline;
     Easer mEaser;
@@ -110,7 +125,10 @@ CREATE_STATE_ID(Bird, Hop);
 
 Bird::Bird(const ActorCreateParam& param)
     : ActorMultiState(param)
+    , mAttentionLookat(nullptr)
 { }
+
+Bird::~Bird() { }
 
 ActorBase::Result Bird::create() {
     // model setup
@@ -118,14 +136,31 @@ ActorBase::Result Bird::create() {
     mModel = AnimModel::create("uco_blue_jay", "uco_blue_jay", 3);
     changeDirection();
 
-    changeState(StateID_Idle);
+    // attention setup
+    // todo: get this from a nybble
+    bool takePlayerAttention = true;
+    
+    if (takePlayerAttention) {
+        mAttentionLookat = new AttentionLookat(mActorUniqueID);
+        AttentionMgr::instance()->entry(*mAttentionLookat);
+    }
 
+    changeState(StateID_Idle);
     return cResult_Success;
 }
 
 bool Bird::execute() {
     // todo: physics handling here
+
     executeState();
+
+    updateLookat();
+    updateModel();
+
+    if (mStateMgr.getStateID() != &StateID_Fly) {
+        changeStateIfPlayerClose();
+    }
+
     return true;
 }
 
@@ -153,9 +188,6 @@ void Bird::executeState_Idle() {
     if (sead::GlobalRandom::instance()->getU32(HOP_CHANCE) == 1) {
         changeState(StateID_Hop);
     }
-
-    updateModel();
-    changeStateIfPlayerClose();
 }
 
 void Bird::finalizeState_Idle() { }
@@ -176,11 +208,6 @@ void Bird::executeState_ChangeDirection() {
         changeDirection();
         changeState(StateID_Idle);
     }
-
-    // todo: also check if the player is nearby and change the state anyway if so
-
-    updateModel();
-    changeStateIfPlayerClose();
 }
 
 void Bird::finalizeState_ChangeDirection() { }
@@ -234,9 +261,6 @@ void Bird::executeState_Hop() {
         mPos.y = mBaseline;
         changeState(StateID_Idle);
     }
-
-    updateModel();
-    changeStateIfPlayerClose();
 }
 
 void Bird::finalizeState_Hop() { }
@@ -251,8 +275,6 @@ void Bird::initializeState_Fly() {
 void Bird::executeState_Fly() {
     // todo: maybe make the movement more natural?
     const u32 FLY_AFTER_FRAMES = 8;
-
-    updateModel();
 
     if (mFlyWaitCounter >= FLY_AFTER_FRAMES) {
         mPos.x += mDirection == cDirType_Right ? mSpeed.x : -mSpeed.x;

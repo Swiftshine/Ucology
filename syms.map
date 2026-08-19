@@ -22,3 +22,8 @@ _ZN12FlowerTexMgr10initializeEv = 0x0268a038;
 _ZN12FlowerTexMgr21updateGrassAndFlowersEb = 0x02686428;
 
 _ZN5Actor11calcSpeedX_Ev = 0x020013e8;
+
+_ZN15AttentionLookatC1E13ActorUniqueID = 0x0200ca58;
+_ZN12AttentionMgr9sInstanceE = 0x101c30e8;
+_ZN15AttentionLookatD1Ev = 0x0200cb10;
+_ZN12AttentionMgr5entryERK15AttentionLookat = 0x0200cc8c;
