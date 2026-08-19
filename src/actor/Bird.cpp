@@ -1,8 +1,5 @@
-// wip!
-// BUG: y position too high
-// BUG: bird does not turn around when colliding with a wall
-// TODO: fix shading on models. all models are currently unshaded
-// FUTURE FEATURE: fly on gamepad touch. not a priority however
+// FUTURE: use brighter shaders
+// FUTURE: fly on gamepad touch. not a priority however
 
 #include <actor/ActorState.h>
 #include <actor/AttentionLookat.h>
@@ -206,14 +203,18 @@ bool Bird::execute() {
         if (mWasQuaked) {
             // wait until we're on the floor again to fly away
             if (mBgCheckObj.getOutput().checkFoot()) {
-                mSpeed.y = 0.0f;
                 changeState(StateID_Fly);
             }
         }
 
-        if (mBgCheckObj.checkWall(cDirType_Left) || mBgCheckObj.checkWall(cDirType_Right)) {
-            // turn around
-            changeDirection(); 
+        if (mBgCheckObj.checkWall(DirType::cDirType_Left)) {
+            mDirection = DirType::cDirType_Right;
+            mAngle.y() = sead::Mathf::deg2idx(90.0f);
+        }
+
+        if (mBgCheckObj.checkWall(DirType::cDirType_Right)) {
+            mDirection = DirType::cDirType_Left;
+            mAngle.y() = sead::Mathf::deg2idx(-90.0f);
         }
     }
 
@@ -336,6 +337,7 @@ void Bird::initializeState_Fly() {
     mModel->playSklAnim("Fly");
     mModel->getSklAnim(0)->getFrameCtrl().setPlayMode(FrameCtrl::cMode_Repeat);
     mFlyWaitCounter = 0;
+    mSpeed.y = 0.0f;
 }
 
 void Bird::executeState_Fly() {
