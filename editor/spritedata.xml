@@ -325,4 +325,13 @@
             <entry value="2">Always</entry>
         </list>
     </sprite>
+
+    <sprite string_id="ucology:player_look_tag" name="Player Look Tag">
+        <list nybble="1" title="Target" comment="What the player will look at.">
+            <entry value="0">This position</entry>
+            <entry value="1">The screen</entry>
+        </list>
+
+        <value nybble="2-3" title="Location ID" comment="The location ID the player must be in to look at the screen." requirednybble="1" requiredval="1"/>
+    </sprite>
 </sprites>
