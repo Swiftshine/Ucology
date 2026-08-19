@@ -335,5 +335,11 @@
 
         <value nybble="2-3" title="Location ID" comment="The location ID the player must be in to look at the target." requirednybble="1" requiredval="1-2"/>
         <value nybble="4-5" title="Event ID" comment="If this value is nonzero, the player will look at the target while this event is active. Otherwise, the player will always look at the target if the specified condition is met."/>
+        <value nybble="6-7" title="Link ID"/>
+    </sprite>
+
+    <sprite string_id="ucology:player_look_tag_link" name="Player Look Tag Link">
+        <value nybble="1-2" title="Independent Link ID" comment="Search for an actor with this value as its initial state."/>
+        <value nybble="3-4" title="Dependent Link ID" comment="The link ID to pair the link tag with."/>
     </sprite>
 </sprites>
