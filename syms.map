@@ -43,3 +43,7 @@ _ZTV11NMSndObject = 0x1017dd7c;
 _ZTV11SndObjctPly = 0x10161c44;
 
 _ZN16EffectCreateUtil18createPlayerEffectEiiPKN4sead7Vector3IfEEPK6Angle3S4_ = 0x022ab158;
+
+_ZN5LightC1Ev = 0x024E24BC;
+_ZN5LightD1Ev = 0x024E2580;
+_ZN5Light6updateE9LightTypePN4sead7Vector3IfEEPjPfS6_PNS1_7Color4fES6_S6_ = 0x024E26BC;

@@ -1,5 +1,5 @@
 // TODO: turn to face player when nearby during idle state
-// TODO: SFX
+// TOOD: randomise frame speed (and re-randomise it on every state change)
 // TODO: spin when:
 // - touching a player with star power
 // - touching a baby yoshi with star power
@@ -13,6 +13,7 @@
 #include <graphics/JointBlendModel.h>
 #include <effect/EffectCreateUtil.h>
 #include <graphics/MaterialG3d.h>
+#include <graphics/Light.h>
 #include <player/PlayerObject.h>
 #include <player/Yoshi.h>
 #include <red/util/SpriteUtil.h>
@@ -20,7 +21,8 @@
 #include <sound/SndObjectPlayer.h>
 #include <ucology/Ucology.h>
 
-const f32 ANIM_BLEND_TIME = 10.0f;
+
+const f32 ANIM_BLEND_TIME = 20.0f;
 
 namespace ucology {
 
@@ -42,23 +44,32 @@ public:
     void updateModel() const {
         mModel->update(mPos, mAngle, mScale);
     }
+    
+    void updateLight() {
+        f32 lightRadius = 0.5f;
+        f32 lightStrength = 0.3f;
+
+        sead::Vector3f lightPos = mPos + mCurrentModelOffset;
+        lightPos.y += 10.0f;
+        lightPos.z -= 2000.0f;
+        mLight.update(static_cast<LightType>(0), &lightPos, nullptr, &lightRadius, &lightStrength, &mColor);
+    }
 
     void setAnimUpdateRate(float rate) const {
         mModel->getCurSklAnim()->getFrameCtrl().setRate(rate);
     }
 
-    sead::Vector3f getCurrentModelOffset() const {
+    void updateCurrentModelOffset() {
         sead::Matrix34f mtx;
         mModel->getModel()->getBoneWorldMatrix(mJointBoneIndex, &mtx);
 
-        sead::Vector3f pos = mtx.getTranslation() - mPos;
-        return pos;
+        mCurrentModelOffset = mtx.getTranslation() - mPos;
     }
 
     void updateColliderPosition() {
-        const f32 CENTER_OFFSET = 10.0f;
+        const f32 CENTER_OFFSET = 14.0f;
 
-        sead::Vector3f offset = getCurrentModelOffset();
+        sead::Vector3f offset = mCurrentModelOffset;
         offset.y += CENTER_OFFSET;
         mCollisionCheck.setCenterOffset(offset);
     }
@@ -78,16 +89,15 @@ public:
     }
 
     void setModelColor();
-    void debugMenu();
-
     static void collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* cc_other);
 private:
     // model
     JointBlendModel* mModel;
-    struct {
-        f32 r, g, b;
-    } mColor;
+    sead::Color4f mColor;
     s32 mJointBoneIndex;
+
+    // light
+    Light mLight;
 
     // player attention
     AttentionLookat mPlayerAttention;
@@ -96,6 +106,7 @@ private:
     u32 mBounceTimers[4];
     u32 mRandomIdleAnimTimer;
     bool mFirstTimeInIdleState;
+    sead::Vector3f mCurrentModelOffset;
 
     // sound
     SndObjctPly mSoundObject;
@@ -133,17 +144,31 @@ Luma::Luma(const ActorCreateParam& param)
 { }
 
 ActorBase::Result Luma::create() {
+    const f32 SCALE_FACTOR = 0.15f;
+    const f32 DEFAULT_SATURATION = 1.3f;
     // model setup
-    mScale = sead::Vector3f(0.1f, 0.1f, 0.1f);
+    mScale = sead::Vector3f(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
 
     mColor.r = static_cast<f32>(red::SpriteUtil::getNybbleRange(this, 1, 2)) / 255.0f;
     mColor.g = static_cast<f32>(red::SpriteUtil::getNybbleRange(this, 3, 4)) / 255.0f;
     mColor.b = static_cast<f32>(red::SpriteUtil::getNybbleRange(this, 5, 6)) / 255.0f;
     
+    u8 saturation = red::SpriteUtil::getNybble7(this);
+
+    if (saturation == 0) {
+        mColor.a = DEFAULT_SATURATION;
+    } else {
+        mColor.a = static_cast<f32>(saturation) * 0.1f;
+    }
+
     mModel = JointBlendModel::create("uco_luma", "uco_luma", 8);
     mJointBoneIndex = mModel->getModel()->searchBoneIndex("AllRoot");
 
     setModelColor();
+
+    updateModel();
+    updateLight();
+    updateCurrentModelOffset();
 
     // collision setup
     mCollisionCheck.set(this, cCollisionData);
@@ -162,7 +187,9 @@ ActorBase::Result Luma::create() {
 bool Luma::execute() {
     // model
     updateModel();
-    
+    updateLight();
+    updateCurrentModelOffset();
+
     // collision
     updateColliderPosition();
 
@@ -196,7 +223,7 @@ void Luma::initializeState_Idle() {
         mModel->setAnm("Wait", ANIM_BLEND_TIME, FrameCtrl::cMode_Repeat);
     }
 
-    setAnimUpdateRate(0.5f);
+    setAnimUpdateRate(0.75f);
 }
 
 void Luma::executeState_Idle() {
@@ -221,7 +248,7 @@ void Luma::finalizeState_Idle() { }
 
 void Luma::initializeState_Bounced() {
     mModel->setAnm("Trampled", ANIM_BLEND_TIME, FrameCtrl::PlayMode::cMode_NoRepeat);
-    setAnimUpdateRate(0.7f);
+    setAnimUpdateRate(1.0f);
 }
 
 void Luma::executeState_Bounced() {
@@ -269,7 +296,7 @@ void Luma::setModelColor() {
 
             if (offs >= 0) {
                 sead::Color4f* col = mat->getMaterialObj()->EditShaderParam<sead::Color4f>(paramIndex);
-                col->setf(mColor.r, mColor.g, mColor.b, 255.0f);
+                col->setf(mColor.r, mColor.g, mColor.b, mColor.a);
             }
         }
     }
@@ -303,7 +330,7 @@ void Luma::collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* 
 
             self->mSoundObject.startSound("SE_PLY_CRASH_S", nw::snd::OUTPUT_LINE_MAIN);
 
-            sead::Vector3f effectPos = self->getPos() + self->getCurrentModelOffset();
+            sead::Vector3f effectPos = self->getPos() + self->mCurrentModelOffset;
             effectPos.y += 6.0f;
 
             sead::Vector3f effectScale = sead::Vector3f(EFFECT_SCALE, EFFECT_SCALE, EFFECT_SCALE);
@@ -316,6 +343,8 @@ void Luma::collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* 
 
         case ActorType::cActorType_Yoshi: {
             Yoshi* yoshi = static_cast<Yoshi*>(actor);
+
+            
             // todo
             break;
         }
