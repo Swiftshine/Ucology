@@ -340,4 +340,11 @@
         <value nybble="1-2" title="Independent Link ID" comment="Search for an actor with this value as its initial state."/>
         <value nybble="3-4" title="Dependent Link ID" comment="The link ID to pair the link tag with."/>
     </sprite>
+
+    <sprite string_id="ucology:luma" name="Luma">
+        <!-- todo! make this a hex input instead -->
+        <value nybble="1-2" title="Red Color"/>
+        <value nybble="3-4" title="Green Color"/>
+        <value nybble="5-6" title="Blue Color"/>
+    </sprite>
 </sprites>

@@ -33,3 +33,13 @@ _ZN5Quake9sInstanceE = 0x101d1660;
 _ZN12PlayerObject15setClampFaceRotEv = 0x0292596c;
 
 _ZN4sead11BitFlagUtil10countOnBitEj = 0x02a0ef58;
+
+_ZN2nw3snd11SoundHandle11DetachSoundEv = 0x02addfac;
+_ZN11SndObjctPly18startPlyVoiceSoundE13PlayerVoiceIDN2nw3snd10OutputLineE = 0x029bf7fc;
+_ZN11SndObjctPly10startSoundEPKcN2nw3snd10OutputLineE = 0x029BF2D4;
+_ZN11NMSndObjectC2EN15NMSndObjectBase7ObjTypeEN2nw3snd10OutputLineE = 0x029bc52c;
+_ZN15NMSndObjectBaseD1Ev = 0x029bbbd8;
+_ZTV11NMSndObject = 0x1017dd7c;
+_ZTV11SndObjctPly = 0x10161c44;
+
+_ZN16EffectCreateUtil18createPlayerEffectEiiPKN4sead7Vector3IfEEPK6Angle3S4_ = 0x022ab158;
