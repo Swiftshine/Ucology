@@ -158,6 +158,8 @@ ActorBase::Result Bird::create() {
 
     changeDirection();
 
+    updateModel();
+
     // attention setup
     mPlayerAttentionSettings = static_cast<AttentionSettings>(red::SpriteUtil::getNybble3(this));
 
