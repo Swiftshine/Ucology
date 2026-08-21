@@ -345,6 +345,6 @@
         <value nybble="1-2" title="Red Color"/>
         <value nybble="3-4" title="Green Color"/>
         <value nybble="5-6" title="Blue Color"/>
-        <value nybble="7" title="Saturation" comment="Calculated as 0.5f + (n * 0.1f), where n > 0. The default value for n = 0 is 1.3f."/>
+        <value nybble="7" title="Brightness" comment="Calculated as 0.5f + (n * 0.1f), where n > 0. The default value for n = 0 is 1.3f."/>
     </sprite>
 </sprites>
