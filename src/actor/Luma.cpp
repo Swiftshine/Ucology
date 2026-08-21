@@ -1,4 +1,4 @@
-// TODO: spin when:
+// FUTURE: spin when:
 // - touching a player with star power
 // - touching a baby yoshi with star power
 // - being touched by yoshi's tongue
@@ -12,6 +12,7 @@
 #include <graphics/JointBlendModel.h>
 #include <graphics/MaterialG3d.h>
 #include <graphics/Light.h>
+#include <map_obj/ChibiYoshiBase.h>
 #include <player/PlayerMgr.h>
 #include <player/PlayerObject.h>
 #include <player/Yoshi.h>
@@ -19,8 +20,6 @@
 #include <random/seadGlobalRandom.h>
 #include <sound/SndObjectPlayer.h>
 #include <ucology/Ucology.h>
-
-#include <imgui/imgui.h>
 
 const f32 ANIM_BLEND_TIME = 20.0f;
 
@@ -88,10 +87,23 @@ public:
         AttentionMgr::instance()->release(mPlayerAttention);
     }
 
+    void playBounceSFX() {
+        mSoundObject.startSound("SE_PLY_CRASH_S", nw::snd::OUTPUT_LINE_MAIN);
+    }
+
+    void playBounceGFX() {
+        const f32 EFFECT_SCALE = 0.7f;
+
+        sead::Vector3f effectPos = getPos() + mCurrentModelOffset;
+        effectPos.y += 6.0f;
+
+        sead::Vector3f effectScale = sead::Vector3f(EFFECT_SCALE, EFFECT_SCALE, EFFECT_SCALE);
+        EffectCreateUtil::createPlayerEffect(-1, EffectID_::RP_Npc_Hit, &effectPos, nullptr, &effectScale);
+    }
+
     void setModelColor();
     void faceNearestPlayer();
 
-    void debugMenu();
     static void collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* cc_other);
 private:
     // model
@@ -106,7 +118,7 @@ private:
     AttentionLookat mPlayerAttention;
 
     // logic
-    u32 mBounceTimers[4];
+    u32 mBounceTimers[5];
     u32 mRandomIdleAnimTimer;
     bool mFirstTimeInIdleState;
     sead::Vector3f mCurrentModelOffset;
@@ -118,13 +130,14 @@ private:
 using CC = ActorCollisionCheck;
 const ActorCollisionCheck::CollisionData Luma::cCollisionData = {
     .center_offset = { 0.0f, 0.0f },
-    .half_size = { 4.0f, 2.0f },
+    .half_size = { 6.0f, 2.0f },
     .shape_type = CC::cShapeType_Box,
     .kind = CC::cKind_Enemy,
     .attack = CC::cAttack_None,
     .vs_kind = CC::TargetKind(
         CC::cTargetKind_Player |
-        CC::cTargetKind_Yoshi
+        CC::cTargetKind_Yoshi |
+        CC::cTargetKind_ChibiYoshi
     ),
     .vs_damage = CC::DamageFrom(CC::cDamageFrom_HipAttack | CC::cDamageFrom_Unk25),
     .status = CC::cStatus_None,
@@ -173,6 +186,7 @@ ActorBase::Result Luma::create() {
     updateModel();
     updateLight();
     updateCurrentModelOffset();
+    faceNearestPlayer();
 
     // collision setup
     mCollisionCheck.set(this, cCollisionData);
@@ -204,8 +218,6 @@ bool Luma::execute() {
         }
     }
 
-    debugMenu();
-
     // state
     executeState();
 
@@ -231,6 +243,7 @@ void Luma::initializeState_Idle() {
 
     f32 rate = sead::GlobalRandom::instance()->getF32Range(0.75f, 1.0f);
     setAnimUpdateRate(rate);
+    faceNearestPlayer();
 }
 
 void Luma::executeState_Idle() {
@@ -313,7 +326,6 @@ void Luma::setModelColor() {
 
 void Luma::collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* cc_other) {
     const u32 FRAMES_UNTIL_JUMP_ALLOWED_AGAIN = 10;
-    const f32 EFFECT_SCALE = 0.7f;
 
     Luma* self = static_cast<Luma*>(cc_self->getOwner());
 
@@ -322,7 +334,13 @@ void Luma::collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* 
     switch (actor->getActorType()) {
         case ActorType::cActorType_Player: {
             PlayerObject* player = static_cast<PlayerObject*>(actor);
+            Yoshi* yoshi = player->getRideYoshi();
 
+            if (yoshi != nullptr) {
+                // handle yoshi separately
+                return;
+            }
+            
             s8 playerID = player->getPlayerNo();
 
             if (playerID >= 4) {
@@ -337,29 +355,51 @@ void Luma::collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* 
 
             timer = FRAMES_UNTIL_JUMP_ALLOWED_AGAIN;
 
-            self->mSoundObject.startSound("SE_PLY_CRASH_S", nw::snd::OUTPUT_LINE_MAIN);
+            self->changeState(StateID_Bounced);
 
-            sead::Vector3f effectPos = self->getPos() + self->mCurrentModelOffset;
-            effectPos.y += 6.0f;
-
-            sead::Vector3f effectScale = sead::Vector3f(EFFECT_SCALE, EFFECT_SCALE, EFFECT_SCALE);
-            EffectCreateUtil::createPlayerEffect(-1, EffectID_::RP_Npc_Hit, &effectPos, nullptr, &effectScale);
+            self->playBounceSFX();
+            self->playBounceGFX();
 
             player->bouncePlayer1(4.0f, player->getSpeedF(), true, PlayerBase::cBounceType_Normal, PlayerBase::cJumpSe_Normal);
-            self->changeState(StateID_Bounced);
             break;
         }
 
         case ActorType::cActorType_Yoshi: {
             Yoshi* yoshi = static_cast<Yoshi*>(actor);
-
+            PlayerObject* player = yoshi->getPlayerRideOn();
             
-            // todo
+            if (player != nullptr) {
+                s8 playerID = player->getPlayerNo();
+
+                if (playerID >= 4) {
+                    return;
+                }
+
+                u32& timer = self->mBounceTimers[playerID];
+
+                if (timer > 0) {
+                    return;
+                }
+                
+            } else {
+                u32& timer = self->mBounceTimers[4];
+
+                if (timer > 0) {
+                    return;
+                }
+            }
+
+            self->playBounceSFX();
+            self->changeState(StateID_Bounced);
+            self->playBounceGFX();
+            yoshi->bouncePlayer1(4.0f, yoshi->getSpeedF(), true, PlayerBase::cBounceType_Normal, PlayerBase::cJumpSe_None);
+
             break;
         }
 
         case ActorType::cActorType_ChibiYoshi: {
-            // todo
+            // ChibiYoshiBase* baby = static_cast<ChibiYoshiBase*>(actor);
+            // todo: figure out how to make it move upward if not being held
             break;
         }
     }
@@ -401,9 +441,10 @@ void Luma::faceNearestPlayer() {
         return (s32)scaled;
     };
     
-    const f32 PLAYER_DISTANCE_THRESHOLD = 16.0f * 8.0f;
-    const f32 LATERAL_TURN_EXAGGERATION = 5.0f;
-    const f32 VERTICAL_TURN_EXAGGERATION = 6.0f;
+    const f32 PLAYER_DISTANCE_THRESHOLD_TILES = 16;
+    const f32 PLAYER_DISTANCE_THRESHOLD = 16.0f * PLAYER_DISTANCE_THRESHOLD_TILES;
+    const f32 HORIZONTAL_TURN_EXAGGERATION = 5.0f;
+    const f32 VERTICAL_TURN_EXAGGERATION = 4.0f;
     const s32 TURN_SPEED = degreesToBAM32(3.0f);
 
     sead::Vector2f dist;
@@ -425,7 +466,7 @@ void Luma::faceNearestPlayer() {
 
     f32 radians = sead::Mathf::atan2(delta.x, delta.z);
     f32 degrees = sead::Mathf::rad2deg(radians);
-    degrees *= LATERAL_TURN_EXAGGERATION;
+    degrees *= HORIZONTAL_TURN_EXAGGERATION;
 
     f32 horizontalDistance = sead::Mathf::sqrt(
         delta.x * delta.x + delta.z * delta.z

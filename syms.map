@@ -47,3 +47,5 @@ _ZN16EffectCreateUtil18createPlayerEffectEiiPKN4sead7Vector3IfEEPK6Angle3S4_ = 0
 _ZN5LightC1Ev = 0x024E24BC;
 _ZN5LightD1Ev = 0x024E2580;
 _ZN5Light6updateE9LightTypePN4sead7Vector3IfEEPjPfS6_PNS1_7Color4fES6_S6_ = 0x024E26BC;
+
+_ZN12PlayerObject12getRideYoshiEv = 0x0295A6F8;
