@@ -365,47 +365,46 @@ void Luma::collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* 
     }
 }
 
-f32 bam32_to_degrees(s32 bam) {
-    constexpr float BAM32_TO_DEG = 360.0f / 4294967296.0f; 
-    return static_cast<float>(bam) * BAM32_TO_DEG;
-}
-
-s32 degrees_to_bam32(f32 deg) {
-    constexpr float DEG_TO_BAM32 = 4294967296.0f / 360.0f; 
-    float scaled = deg * DEG_TO_BAM32;
-
-    if (scaled >= 0.0f) {
-        scaled = scaled + 0.5f;
-    } else {
-        scaled = scaled - 0.5f;
-    }
-
-    return (s32)scaled;
-
-}
-
-s32 chaseAngle(s32 current, s32 target, s32 speed) {
-    s32 difference = static_cast<s32>(
-        static_cast<u32>(target) -
-        static_cast<u32>(current)
-    );
-
-    if (difference > speed) {
-        return current + speed;
-    }
-
-    if (difference < -speed) {
-        return current - speed;
-    }
-
-    return target;
-}
-
 void Luma::faceNearestPlayer() {
+    // auto BAM32ToDegrees = [](s32 bam) {            
+    //     constexpr float BAM32_TO_DEG = 360.0f / 4294967296.0f; 
+    //     return static_cast<float>(bam) * BAM32_TO_DEG;
+    // };
+
+    auto chaseAngle = [](s32 current, s32 target, s32 speed) {
+        s32 difference = static_cast<s32>(
+            static_cast<u32>(target) -
+            static_cast<u32>(current)
+        );
+
+        if (difference > speed) {
+            return current + speed;
+        }
+
+        if (difference < -speed) {
+            return current - speed;
+        }
+
+        return target;
+    };
+
+    auto degreesToBAM32 = [](f32 deg) {
+        constexpr float DEG_TO_BAM32 = 4294967296.0f / 360.0f; 
+        float scaled = deg * DEG_TO_BAM32;
+
+        if (scaled >= 0.0f) {
+            scaled = scaled + 0.5f;
+        } else {
+            scaled = scaled - 0.5f;
+        }
+
+        return (s32)scaled;
+    };
+    
     const f32 PLAYER_DISTANCE_THRESHOLD = 16.0f * 8.0f;
     const f32 LATERAL_TURN_EXAGGERATION = 5.0f;
     const f32 VERTICAL_TURN_EXAGGERATION = 6.0f;
-    const s32 TURN_SPEED = degrees_to_bam32(3.0f);
+    const s32 TURN_SPEED = degreesToBAM32(3.0f);
 
     sead::Vector2f dist;
     s32 playerIndex = searchNearPlayer(dist);
@@ -438,34 +437,15 @@ void Luma::faceNearestPlayer() {
 
     mAngle.x() = chaseAngle(
         mAngle.x(),
-        degrees_to_bam32(pitchDegrees),
+        degreesToBAM32(pitchDegrees),
         TURN_SPEED
     );
 
     mAngle.y() = chaseAngle(
         mAngle.y(),
-        degrees_to_bam32(degrees),
+        degreesToBAM32(degrees),
         TURN_SPEED
     );
-}
-
-
-void Luma::debugMenu() {
-    // if (ImGui::Begin("Angle")) {
-    //     sead::Vector3f angles(
-    //         bam32_to_degrees(mAngle.x()),
-    //         bam32_to_degrees(mAngle.y()),
-    //         bam32_to_degrees(mAngle.z())
-    //     );
-
-    //     ImGui::DragFloat3("Angles", (float*)&angles);
-
-    //     mAngle.x() = degrees_to_bam32(angles.x);
-    //     mAngle.y() = degrees_to_bam32(angles.y);
-    //     mAngle.z() = degrees_to_bam32(angles.z);
-    // }
-
-    // ImGui::End();
 }
 
 }
