@@ -1,5 +1,3 @@
-// TODO: turn to face player when nearby during idle state
-// TOOD: randomise frame speed (and re-randomise it on every state change)
 // TODO: spin when:
 // - touching a player with star power
 // - touching a baby yoshi with star power
@@ -10,10 +8,11 @@
 #include <actor/ActorState.h>
 #include <actor/AttentionMgr.h>
 #include <actor/Profile.h>
-#include <graphics/JointBlendModel.h>
 #include <effect/EffectCreateUtil.h>
+#include <graphics/JointBlendModel.h>
 #include <graphics/MaterialG3d.h>
 #include <graphics/Light.h>
+#include <player/PlayerMgr.h>
 #include <player/PlayerObject.h>
 #include <player/Yoshi.h>
 #include <red/util/SpriteUtil.h>
@@ -21,6 +20,7 @@
 #include <sound/SndObjectPlayer.h>
 #include <ucology/Ucology.h>
 
+#include <imgui/imgui.h>
 
 const f32 ANIM_BLEND_TIME = 20.0f;
 
@@ -89,6 +89,9 @@ public:
     }
 
     void setModelColor();
+    void faceNearestPlayer();
+
+    void debugMenu();
     static void collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* cc_other);
 private:
     // model
@@ -146,6 +149,7 @@ Luma::Luma(const ActorCreateParam& param)
 ActorBase::Result Luma::create() {
     const f32 SCALE_FACTOR = 0.15f;
     const f32 DEFAULT_SATURATION = 1.3f;
+
     // model setup
     mScale = sead::Vector3f(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
 
@@ -158,7 +162,7 @@ ActorBase::Result Luma::create() {
     if (saturation == 0) {
         mColor.a = DEFAULT_SATURATION;
     } else {
-        mColor.a = static_cast<f32>(saturation) * 0.1f;
+        mColor.a = 0.5f + static_cast<f32>(saturation) * 0.1f;
     }
 
     mModel = JointBlendModel::create("uco_luma", "uco_luma", 8);
@@ -200,6 +204,8 @@ bool Luma::execute() {
         }
     }
 
+    debugMenu();
+
     // state
     executeState();
 
@@ -223,7 +229,8 @@ void Luma::initializeState_Idle() {
         mModel->setAnm("Wait", ANIM_BLEND_TIME, FrameCtrl::cMode_Repeat);
     }
 
-    setAnimUpdateRate(0.75f);
+    f32 rate = sead::GlobalRandom::instance()->getF32Range(0.75f, 1.0f);
+    setAnimUpdateRate(rate);
 }
 
 void Luma::executeState_Idle() {
@@ -235,13 +242,15 @@ void Luma::executeState_Idle() {
     }
 
     // 1 in n chance per eligible frame to play an idle animation
-    const u32 RANDOM_IDLE_ANIM_CHANCE = 500;
+    const u32 RANDOM_IDLE_ANIM_CHANCE = 700;
     if (mRandomIdleAnimTimer == 0) {
         if (sead::GlobalRandom::instance()->getU32(RANDOM_IDLE_ANIM_CHANCE) == 0) {
             changeState(StateID_IdleAnimation);
             mRandomIdleAnimTimer = RANDOM_IDLE_TIMER_LIMIT_FRAMES;
         }
     }
+
+    faceNearestPlayer();
 }
 
 void Luma::finalizeState_Idle() { }
@@ -354,6 +363,109 @@ void Luma::collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* 
             break;
         }
     }
+}
+
+f32 bam32_to_degrees(s32 bam) {
+    constexpr float BAM32_TO_DEG = 360.0f / 4294967296.0f; 
+    return static_cast<float>(bam) * BAM32_TO_DEG;
+}
+
+s32 degrees_to_bam32(f32 deg) {
+    constexpr float DEG_TO_BAM32 = 4294967296.0f / 360.0f; 
+    float scaled = deg * DEG_TO_BAM32;
+
+    if (scaled >= 0.0f) {
+        scaled = scaled + 0.5f;
+    } else {
+        scaled = scaled - 0.5f;
+    }
+
+    return (s32)scaled;
+
+}
+
+s32 chaseAngle(s32 current, s32 target, s32 speed) {
+    s32 difference = static_cast<s32>(
+        static_cast<u32>(target) -
+        static_cast<u32>(current)
+    );
+
+    if (difference > speed) {
+        return current + speed;
+    }
+
+    if (difference < -speed) {
+        return current - speed;
+    }
+
+    return target;
+}
+
+void Luma::faceNearestPlayer() {
+    const f32 PLAYER_DISTANCE_THRESHOLD = 16.0f * 8.0f;
+    const f32 LATERAL_TURN_EXAGGERATION = 5.0f;
+    const f32 VERTICAL_TURN_EXAGGERATION = 6.0f;
+    const s32 TURN_SPEED = degrees_to_bam32(3.0f);
+
+    sead::Vector2f dist;
+    s32 playerIndex = searchNearPlayer(dist);
+
+    if (playerIndex == -1 || dist.length() > PLAYER_DISTANCE_THRESHOLD) {
+        mAngle.x() = chaseAngle(mAngle.x(), 0, TURN_SPEED);
+        mAngle.y() = chaseAngle(mAngle.y(), 0, TURN_SPEED);
+        return;
+    }
+
+    PlayerObject* player = PlayerMgr::instance()->getPlayerObject(playerIndex);
+
+    if (player == nullptr) {
+        return;
+    }
+
+    sead::Vector3f delta = player->getPos() - mPos;
+
+    f32 radians = sead::Mathf::atan2(delta.x, delta.z);
+    f32 degrees = sead::Mathf::rad2deg(radians);
+    degrees *= LATERAL_TURN_EXAGGERATION;
+
+    f32 horizontalDistance = sead::Mathf::sqrt(
+        delta.x * delta.x + delta.z * delta.z
+    );
+
+    f32 pitchRadians = sead::Mathf::atan2(delta.y, horizontalDistance);
+    f32 pitchDegrees = sead::Mathf::rad2deg(pitchRadians);
+    pitchDegrees *= -VERTICAL_TURN_EXAGGERATION;
+
+    mAngle.x() = chaseAngle(
+        mAngle.x(),
+        degrees_to_bam32(pitchDegrees),
+        TURN_SPEED
+    );
+
+    mAngle.y() = chaseAngle(
+        mAngle.y(),
+        degrees_to_bam32(degrees),
+        TURN_SPEED
+    );
+}
+
+
+void Luma::debugMenu() {
+    // if (ImGui::Begin("Angle")) {
+    //     sead::Vector3f angles(
+    //         bam32_to_degrees(mAngle.x()),
+    //         bam32_to_degrees(mAngle.y()),
+    //         bam32_to_degrees(mAngle.z())
+    //     );
+
+    //     ImGui::DragFloat3("Angles", (float*)&angles);
+
+    //     mAngle.x() = degrees_to_bam32(angles.x);
+    //     mAngle.y() = degrees_to_bam32(angles.y);
+    //     mAngle.z() = degrees_to_bam32(angles.z);
+    // }
+
+    // ImGui::End();
 }
 
 }
