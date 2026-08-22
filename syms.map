@@ -49,3 +49,5 @@ _ZN5LightD1Ev = 0x024E2580;
 _ZN5Light6updateE9LightTypePN4sead7Vector3IfEEPjPfS6_PNS1_7Color4fES6_S6_ = 0x024E26BC;
 
 _ZN12PlayerObject12getRideYoshiEv = 0x0295A6F8;
+
+_ZN5Angle13chaseConstantERKS_S1_ = 0x029E1188;

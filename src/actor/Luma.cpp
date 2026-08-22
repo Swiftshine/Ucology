@@ -3,16 +3,14 @@
 // - touching a baby yoshi with star power
 // - being touched by yoshi's tongue
 
-#include <array>
-
 #include <actor/ActorState.h>
 #include <actor/AttentionMgr.h>
 #include <actor/Profile.h>
+#include <container/seadSafeArray.h>
 #include <effect/EffectCreateUtil.h>
 #include <graphics/JointBlendModel.h>
 #include <graphics/MaterialG3d.h>
 #include <graphics/Light.h>
-#include <map_obj/ChibiYoshiBase.h>
 #include <player/PlayerMgr.h>
 #include <player/PlayerObject.h>
 #include <player/Yoshi.h>
@@ -116,12 +114,13 @@ private:
 
     // player attention
     AttentionLookat mPlayerAttention;
-
+    
     // logic
     u32 mBounceTimers[5];
     u32 mRandomIdleAnimTimer;
     bool mFirstTimeInIdleState;
     sead::Vector3f mCurrentModelOffset;
+    f32 mPlayerDistanceThreshold;
 
     // sound
     SndObjctPly mSoundObject;
@@ -162,6 +161,7 @@ Luma::Luma(const ActorCreateParam& param)
 ActorBase::Result Luma::create() {
     const f32 SCALE_FACTOR = 0.15f;
     const f32 DEFAULT_SATURATION = 1.3f;
+    const s32 DEFAULT_PLAYER_DISTANCE = 10; // tiles
 
     // model setup
     mScale = sead::Vector3f(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
@@ -172,11 +172,13 @@ ActorBase::Result Luma::create() {
     
     u8 saturation = red::SpriteUtil::getNybble7(this);
 
-    if (saturation == 0) {
-        mColor.a = DEFAULT_SATURATION;
-    } else {
-        mColor.a = 0.5f + static_cast<f32>(saturation) * 0.1f;
-    }
+    mColor.a = saturation != 0
+        ? 0.5f + static_cast<f32>(saturation) * 0.1f
+        : DEFAULT_SATURATION;
+
+    u8 distance = red::SpriteUtil::getNybble8(this);
+
+    mPlayerDistanceThreshold = 16.0f * (DEFAULT_PLAYER_DISTANCE + distance);
 
     mModel = JointBlendModel::create("uco_luma", "uco_luma", 8);
     mJointBoneIndex = mModel->getModel()->searchBoneIndex("AllRoot");
@@ -282,7 +284,7 @@ void Luma::executeState_Bounced() {
 void Luma::finalizeState_Bounced() { }
 
 void Luma::initializeState_IdleAnimation() {
-    const std::array<const char*, 2> ANIM_NAMES = {
+    const sead::SafeArray<const char*, 2> ANIM_NAMES = {
         "TouchJoy",
         "Reaction",
     };
@@ -381,12 +383,16 @@ void Luma::collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* 
                     return;
                 }
                 
+                timer = FRAMES_UNTIL_JUMP_ALLOWED_AGAIN;
+                
             } else {
                 u32& timer = self->mBounceTimers[4];
 
                 if (timer > 0) {
                     return;
                 }
+
+                timer = FRAMES_UNTIL_JUMP_ALLOWED_AGAIN;
             }
 
             self->playBounceSFX();
@@ -406,11 +412,6 @@ void Luma::collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* 
 }
 
 void Luma::faceNearestPlayer() {
-    // auto BAM32ToDegrees = [](s32 bam) {            
-    //     constexpr float BAM32_TO_DEG = 360.0f / 4294967296.0f; 
-    //     return static_cast<float>(bam) * BAM32_TO_DEG;
-    // };
-
     auto chaseAngle = [](s32 current, s32 target, s32 speed) {
         s32 difference = static_cast<s32>(
             static_cast<u32>(target) -
@@ -428,29 +429,19 @@ void Luma::faceNearestPlayer() {
         return target;
     };
 
-    auto degreesToBAM32 = [](f32 deg) {
-        constexpr float DEG_TO_BAM32 = 4294967296.0f / 360.0f; 
-        float scaled = deg * DEG_TO_BAM32;
-
-        if (scaled >= 0.0f) {
-            scaled = scaled + 0.5f;
-        } else {
-            scaled = scaled - 0.5f;
-        }
-
-        return (s32)scaled;
-    };
+    constexpr f32 HORIZONTAL_TURN_EXAGGERATION = 5.0f;
+    constexpr f32 VERTICAL_TURN_EXAGGERATION = 4.0f;
+    constexpr s32 TURN_SPEED = sead::Mathf::deg2idx(3.0f);
     
-    const f32 PLAYER_DISTANCE_THRESHOLD_TILES = 16;
-    const f32 PLAYER_DISTANCE_THRESHOLD = 16.0f * PLAYER_DISTANCE_THRESHOLD_TILES;
-    const f32 HORIZONTAL_TURN_EXAGGERATION = 5.0f;
-    const f32 VERTICAL_TURN_EXAGGERATION = 4.0f;
-    const s32 TURN_SPEED = degreesToBAM32(3.0f);
-
     sead::Vector2f dist;
     s32 playerIndex = searchNearPlayer(dist);
 
-    if (playerIndex == -1 || dist.length() > PLAYER_DISTANCE_THRESHOLD) {
+    if (playerIndex == -1) {
+        return;
+    }
+
+    if (dist.length() > mPlayerDistanceThreshold) {
+        // look to screen
         mAngle.x() = chaseAngle(mAngle.x(), 0, TURN_SPEED);
         mAngle.y() = chaseAngle(mAngle.y(), 0, TURN_SPEED);
         return;
@@ -476,17 +467,8 @@ void Luma::faceNearestPlayer() {
     f32 pitchDegrees = sead::Mathf::rad2deg(pitchRadians);
     pitchDegrees *= -VERTICAL_TURN_EXAGGERATION;
 
-    mAngle.x() = chaseAngle(
-        mAngle.x(),
-        degreesToBAM32(pitchDegrees),
-        TURN_SPEED
-    );
-
-    mAngle.y() = chaseAngle(
-        mAngle.y(),
-        degreesToBAM32(degrees),
-        TURN_SPEED
-    );
+    mAngle.x() = chaseAngle(mAngle.x(), sead::Mathf::deg2idx(pitchDegrees), TURN_SPEED);
+    mAngle.y() = chaseAngle(mAngle.y(), sead::Mathf::deg2idx(degrees), TURN_SPEED);
 }
 
 }
