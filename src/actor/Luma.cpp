@@ -9,9 +9,11 @@
 #include <actor/Profile.h>
 #include <container/seadSafeArray.h>
 #include <effect/EffectCreateUtil.h>
+#include <game_info/CourseInfo.h>
 #include <graphics/JointBlendModel.h>
 #include <graphics/MaterialG3d.h>
 #include <graphics/Light.h>
+#include <map/CourseData.h>
 #include <player/PlayerMgr.h>
 #include <player/PlayerObject.h>
 #include <player/Yoshi.h>
@@ -28,6 +30,8 @@ class Luma : public ActorMultiState {
 public:
     static Profile* cProfile;
     static const ActorCollisionCheck::CollisionData cCollisionData;
+    static const ActorCreateInfo cCreateInfo;
+
     Luma(const ActorCreateParam& param);
     ~Luma() override = default;
 
@@ -126,6 +130,10 @@ private:
     f32 mPlayerDistanceThreshold;
     bool mIsFixatedOnStar;
 
+    // location
+    bool mHasLocation;
+    sead::Vector3f mLocationPos;
+
     // sound
     SndObjctPly mSoundObject;
 };
@@ -147,9 +155,14 @@ const ActorCollisionCheck::CollisionData Luma::cCollisionData = {
     .callback = Luma::collisionCallback
 };
 
+const ActorCreateInfo Luma::cCreateInfo = {
+    .offset_x = 8, .offset_y = -8
+};
+
 Profile* Luma::cProfile = ucology::getRegistrar()->newProfile<Luma>("luma")
     .resources<"uco_luma">(ProfileInfo::cResType_Course)
     .flag(Profile::cFlag_DrawCullCheck)
+    .createInfo(&cCreateInfo)
     .build();
 
 CREATE_STATE_ID(Luma, Idle);
@@ -205,6 +218,24 @@ ActorBase::Result Luma::create() {
     mCollisionCheck.set(this, cCollisionData);
     reviveCollisionCheck();
 
+    // location
+    u8 locationID = static_cast<u8>(red::SpriteUtil::getNybbleRange(this, 10, 11));
+    mHasLocation = locationID != 0;
+
+    if (mHasLocation) {
+        sead::BoundBox2f locationBounds;
+        const CourseDataFile* area = CourseData::instance()->getFile(CourseInfo::instance()->getFileNo());
+        const Location* location = area->getLocation(&locationBounds, locationID);
+
+        if (location == nullptr) {
+            tk::fatal("Luma - the specified location (id %d) does not exist", locationID);
+            return cResult_Failed;
+        }
+
+        sead::Vector2f center = locationBounds.getCenter();
+        mLocationPos = sead::Vector3f(center, 3000.0f);
+    }
+    
     // logic
     sead::MemUtil::fill(mBounceTimers, 0, sizeof(mBounceTimers));
     mFirstTimeInIdleState = true;
@@ -500,6 +531,8 @@ void Luma::faceNearestTarget() {
         targetPos.z = 3000.0f;
     } else if (player != nullptr) {
         targetPos = player->getPos();
+    } else if (mHasLocation) {
+        targetPos = mLocationPos;
     } else {
         // look to screen
         mAngle.x() = chaseAngle(mAngle.x(), 0, TURN_SPEED);

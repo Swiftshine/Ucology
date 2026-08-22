@@ -348,5 +348,6 @@
         <value nybble="7" title="Brightness" comment="Calculated as [brightness = 0.5f + (n * 0.1f)], where n > 0. The default brightness for n = 0 is 1.3f."/>
         <value nybble="8" title="Distance to look at player" comment="Calculated as [distance in tiles = 10 + n]."/>
         <checkbox nybble="9" title="Randomize Color" comment="RGB values will be randomized."/>
+        <value nybble="10-11" title="Location ID" comment="Luma will look at this location's center. N/A if this value is 0."/>
     </sprite>
 </sprites>
