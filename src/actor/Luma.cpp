@@ -105,7 +105,7 @@ public:
     }
 
     void setModelColor();
-    Actor* findClosestStar() const;
+    Actor* findClosestStar();
     PlayerObject* findClosestPlayer();
     void faceNearestTarget();
 
@@ -119,16 +119,20 @@ private:
     // light
     Light mLight;
 
-    // player attention
+    // player is looking at us
     AttentionLookat mPlayerAttention;
     
+    // we looking at things
+    f32 mPlayerDistanceThreshold;
+    bool mIsFixatedOnStar;
+    ActorUniqueID mLastStarID;
+    u32 mStarSearchTimer;
+
     // logic
     u32 mBounceTimers[5];
     u32 mRandomIdleAnimTimer;
     bool mFirstTimeInIdleState;
     sead::Vector3f mCurrentModelOffset;
-    f32 mPlayerDistanceThreshold;
-    bool mIsFixatedOnStar;
 
     // location
     bool mHasLocation;
@@ -457,13 +461,30 @@ void Luma::collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* 
     }
 }
 
-Actor* Luma::findClosestStar() const {
+Actor* Luma::findClosestStar() {
     // ooh shiny
     constexpr f32 DISTANCE_LIMIT = 16.0f * 20.0f;
-
-    Actor* star = nullptr;
+    constexpr u32 STAR_SEARCH_TIME = 60 * 3;
 
     ActorMgr* actorMgr = ActorMgr::instance();
+
+    if (mStarSearchTimer > 0) {
+        mStarSearchTimer--;
+
+        // check if the star still exists
+        Actor* star = static_cast<Actor*>(actorMgr->getActorPtr(mLastStarID));
+
+        if (star != nullptr) {
+            // just keep looking at that one
+            return star;
+        }
+
+        // otherwise look for a new one
+    }
+    
+    mStarSearchTimer = STAR_SEARCH_TIME;
+    
+    Actor* star = nullptr;
 
     f32 distance = DISTANCE_LIMIT;
 
