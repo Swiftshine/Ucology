@@ -348,6 +348,11 @@
         <value nybble="7" title="Brightness" comment="Calculated as [brightness = 0.5f + (n * 0.1f)], where n > 0. The default brightness for n = 0 is 1.3f."/>
         <value nybble="8" title="Distance to look at player" comment="Calculated as [distance in tiles = 10 + n]."/>
         <checkbox nybble="9" title="Randomize Color" comment="RGB values will be randomized."/>
-        <value nybble="10-11" title="Location ID" comment="Luma will look at this location's center. N/A if this value is 0."/>
+        <value nybble="10-11" title="Link ID" comment="Luma will look at an actor linked with this link ID."/>
+    </sprite>
+
+    <sprite string_id="ucology:luma_look_tag_link" name="Luma Look Tag Link">
+        <value nybble="1-2" title="Luma Link ID"/>
+        <value nybble="3-4" title="Actor Link ID" comment="Search for an actor with this value as its initial state. If this value is 0, Luma will look at this tag's position instead."/>
     </sprite>
 </sprites>

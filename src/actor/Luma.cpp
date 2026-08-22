@@ -26,7 +26,10 @@ const f32 ANIM_BLEND_TIME = 20.0f;
 
 namespace ucology {
 
+/* ===== LUMA ===== */
+
 class Luma : public ActorMultiState {
+    SEAD_RTTI_OVERRIDE(Luma, ActorMultiState);
 public:
     static Profile* cProfile;
     static const ActorCollisionCheck::CollisionData cCollisionData;
@@ -104,6 +107,18 @@ public:
         EffectCreateUtil::createPlayerEffect(-1, EffectID_::RP_Npc_Hit, &effectPos, nullptr, &effectScale);
     }
 
+    void setHasLookTarget(bool hasLookTarget) {
+        mHasLookTarget = hasLookTarget;
+    }
+
+    void setLookTargetPosition(const sead::Vector3f& pos) {
+        mLookTargetPosition = pos;
+    }
+
+    u8 getLookTargetID() const {
+        return mLookTargetID;
+    }
+
     void setModelColor();
     Actor* findClosestStar();
     PlayerObject* findClosestPlayer();
@@ -122,11 +137,14 @@ private:
     // player is looking at us
     AttentionLookat mPlayerAttention;
     
-    // we looking at things
+    // we are looking at things
     f32 mPlayerDistanceThreshold;
-    bool mIsFixatedOnStar;
+    bool mIsFixatedOnSomething;
     ActorUniqueID mLastStarID;
     u32 mStarSearchTimer;
+    bool mHasLookTarget;
+    sead::Vector3f mLookTargetPosition;
+    u8 mLookTargetID;
 
     // logic
     u32 mBounceTimers[5];
@@ -134,13 +152,11 @@ private:
     bool mFirstTimeInIdleState;
     sead::Vector3f mCurrentModelOffset;
 
-    // location
-    bool mHasLocation;
-    sead::Vector3f mLocationPos;
-
     // sound
     SndObjctPly mSoundObject;
 };
+
+SEAD_RTTI_OVERRIDE_IMPL(Luma, ActorMultiState);
 
 using CC = ActorCollisionCheck;
 const ActorCollisionCheck::CollisionData Luma::cCollisionData = {
@@ -222,24 +238,10 @@ ActorBase::Result Luma::create() {
     mCollisionCheck.set(this, cCollisionData);
     reviveCollisionCheck();
 
-    // location
-    u8 locationID = static_cast<u8>(red::SpriteUtil::getNybbleRange(this, 10, 11));
-    mHasLocation = locationID != 0;
+    // look at
+    mLookTargetID = static_cast<u8>(red::SpriteUtil::getNybbleRange(this, 10, 11));
+    mHasLookTarget = false;
 
-    if (mHasLocation) {
-        sead::BoundBox2f locationBounds;
-        const CourseDataFile* area = CourseData::instance()->getFile(CourseInfo::instance()->getFileNo());
-        const Location* location = area->getLocation(&locationBounds, locationID);
-
-        if (location == nullptr) {
-            tk::fatal("Luma - the specified location (id %d) does not exist", locationID);
-            return cResult_Failed;
-        }
-
-        sead::Vector2f center = locationBounds.getCenter();
-        mLocationPos = sead::Vector3f(center, 3000.0f);
-    }
-    
     // logic
     sead::MemUtil::fill(mBounceTimers, 0, sizeof(mBounceTimers));
     mFirstTimeInIdleState = true;
@@ -303,9 +305,9 @@ void Luma::executeState_Idle() {
     }
 
     // 1 in n chance per eligible frame to play an idle animation
-    // but don't do this if it's looking at a star
+    // but don't do this if it's looking at something of interest
 
-    if (!mIsFixatedOnStar) {
+    if (!mIsFixatedOnSomething) {
         const u32 RANDOM_IDLE_ANIM_CHANCE = 700;
         if (mRandomIdleAnimTimer == 0) {
             if (sead::GlobalRandom::instance()->getU32(RANDOM_IDLE_ANIM_CHANCE) == 0) {
@@ -545,15 +547,18 @@ void Luma::faceNearestTarget() {
     Actor* star = findClosestStar();
     PlayerObject* player = findClosestPlayer();
 
-    mIsFixatedOnStar = star != nullptr;
+    mIsFixatedOnSomething = false;
     if (star != nullptr) {
+        mIsFixatedOnSomething = true;
         targetPos = star->getPos();
         // use a more suitable z order to make sure the calculations aren't busted
         targetPos.z = 3000.0f;
     } else if (player != nullptr) {
         targetPos = player->getPos();
-    } else if (mHasLocation) {
-        targetPos = mLocationPos;
+    } else if (mHasLookTarget) {
+        mIsFixatedOnSomething = true;
+        targetPos = mLookTargetPosition;
+        targetPos.z = 3000.0f;
     } else {
         // look to screen
         mAngle.x() = chaseAngle(mAngle.x(), 0, TURN_SPEED);
@@ -575,6 +580,113 @@ void Luma::faceNearestTarget() {
 
     mAngle.x() = chaseAngle(mAngle.x(), sead::Mathf::deg2idx(pitchDegrees), TURN_SPEED);
     mAngle.y() = chaseAngle(mAngle.y(), sead::Mathf::deg2idx(degrees), TURN_SPEED);
+}
+
+
+/* ===== LUMA LOOK LINK TAG ===== */
+
+// TODO: cache actor ids
+// TODO: multiple lumas can look at a single object; account for that
+class LumaLookTagLink : public Actor {
+public:
+    static Profile* cProfile;
+
+    LumaLookTagLink(const ActorCreateParam& param);
+    ~LumaLookTagLink() override = default;
+
+    Result create() override;
+    bool execute() override;
+
+    Luma* findLuma() const;
+    Actor* findParentActor() const;
+private:
+    u8 mLumaID;
+    u8 mParentLinkID;
+};
+
+Profile* LumaLookTagLink::cProfile = ucology::getRegistrar()->newProfile<LumaLookTagLink>("luma_look_tag_link").build();
+
+LumaLookTagLink::LumaLookTagLink(const ActorCreateParam& param)
+    : Actor(param)
+{ }
+
+ActorBase::Result LumaLookTagLink::create() {
+    mLumaID = static_cast<u8>(red::SpriteUtil::getNybbleRange(this, 1, 2));
+    mParentLinkID = static_cast<u8>(red::SpriteUtil::getNybbleRange(this, 3, 4));
+
+    return cResult_Success;
+}
+
+bool LumaLookTagLink::execute() {
+    ActorMgr* actorMgr = ActorMgr::instance();
+
+    Luma* luma = findLuma();
+    Actor* parent = findParentActor();
+
+    if (luma == nullptr || parent == nullptr) {
+        return true;
+    }
+
+    if (parent->isRequestedDelete()) {
+        luma->setHasLookTarget(false);
+        mDeleteRequestFlag = true;
+        return true;
+    }
+
+    luma->setHasLookTarget(true);
+
+    sead::Vector3f targetPos = mParentLinkID != 0
+        ? parent->getPos()
+        : getPos();
+
+    luma->setLookTargetPosition(targetPos);
+
+    return true;
+}
+
+Luma* LumaLookTagLink::findLuma() const {
+    Luma* luma = nullptr;
+
+    ActorMgr* actorMgr = ActorMgr::instance();
+
+    for (ActorMgr::iterator it = actorMgr->getActorBegin(); it != actorMgr->getActorEnd(); it++) {
+        Luma* actor = sead::DynamicCast<Luma>(*it);
+
+        if (actor == nullptr) {
+            continue;
+        }
+
+        u8 linkID = actor->getLookTargetID();
+
+        if (linkID != 0 && linkID == mLumaID) {
+            luma = actor;
+        }
+    }
+
+    return luma;
+}
+
+Actor* LumaLookTagLink::findParentActor() const {
+    Actor* parent = nullptr;
+
+    ActorMgr* actorMgr = ActorMgr::instance();
+
+    for (ActorMgr::iterator it = actorMgr->getActorBegin(); it != actorMgr->getActorEnd(); it++) {
+        Actor* actor = static_cast<Actor*>(*it);
+
+        if (actor == nullptr) {
+            continue;
+        }
+
+        // use initial state
+        u8 linkID = actor->getParamEx().course.init_state_flag;
+
+        if (linkID != 0 && linkID == mParentLinkID) {
+            parent = actor;
+        }
+    }
+
+    return parent;
 }
 
 }
