@@ -169,24 +169,31 @@ ActorBase::Result Luma::create() {
 
     // model setup
     mScale = sead::Vector3f(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
-
-    mColor.r = static_cast<f32>(red::SpriteUtil::getNybbleRange(this, 1, 2)) / 255.0f;
-    mColor.g = static_cast<f32>(red::SpriteUtil::getNybbleRange(this, 3, 4)) / 255.0f;
-    mColor.b = static_cast<f32>(red::SpriteUtil::getNybbleRange(this, 5, 6)) / 255.0f;
+    mModel = JointBlendModel::create("uco_luma", "uco_luma", 8);
+    mJointBoneIndex = mModel->getModel()->searchBoneIndex("AllRoot");
     
-    u8 saturation = red::SpriteUtil::getNybble7(this);
 
+    // colors
+    bool randomizeColor = static_cast<bool>(red::SpriteUtil::getNybble9(this));
+    if (randomizeColor) {
+        mColor.r = sead::GlobalRandom::instance()->getF32Range(0.0f, 1.0f);
+        mColor.g = sead::GlobalRandom::instance()->getF32Range(0.0f, 1.0f);
+        mColor.b = sead::GlobalRandom::instance()->getF32Range(0.0f, 1.0f);
+    } else {
+        mColor.r = static_cast<f32>(red::SpriteUtil::getNybbleRange(this, 1, 2)) / 255.0f;
+        mColor.g = static_cast<f32>(red::SpriteUtil::getNybbleRange(this, 3, 4)) / 255.0f;
+        mColor.b = static_cast<f32>(red::SpriteUtil::getNybbleRange(this, 5, 6)) / 255.0f;
+    }
+
+    u8 saturation = red::SpriteUtil::getNybble7(this);
     mColor.a = saturation != 0
         ? 0.5f + static_cast<f32>(saturation) * 0.1f
         : DEFAULT_SATURATION;
-
+        
+    // other setups
     u8 distance = red::SpriteUtil::getNybble8(this);
-
     mPlayerDistanceThreshold = 16.0f * (DEFAULT_PLAYER_DISTANCE + distance);
-
-    mModel = JointBlendModel::create("uco_luma", "uco_luma", 8);
-    mJointBoneIndex = mModel->getModel()->searchBoneIndex("AllRoot");
-
+        
     setModelColor();
 
     updateModel();
