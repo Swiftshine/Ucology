@@ -3,6 +3,7 @@
 // - touching a baby yoshi with star power
 // - being touched by yoshi's tongue
 
+#include <actor/ActorMgr.h>
 #include <actor/ActorState.h>
 #include <actor/AttentionMgr.h>
 #include <actor/Profile.h>
@@ -100,7 +101,9 @@ public:
     }
 
     void setModelColor();
-    void faceNearestPlayer();
+    Actor* findClosestStar() const;
+    PlayerObject* findClosestPlayer();
+    void faceNearestTarget();
 
     static void collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* cc_other);
 private:
@@ -121,6 +124,7 @@ private:
     bool mFirstTimeInIdleState;
     sead::Vector3f mCurrentModelOffset;
     f32 mPlayerDistanceThreshold;
+    bool mIsFixatedOnStar;
 
     // sound
     SndObjctPly mSoundObject;
@@ -188,7 +192,7 @@ ActorBase::Result Luma::create() {
     updateModel();
     updateLight();
     updateCurrentModelOffset();
-    faceNearestPlayer();
+    faceNearestTarget();
 
     // collision setup
     mCollisionCheck.set(this, cCollisionData);
@@ -245,7 +249,7 @@ void Luma::initializeState_Idle() {
 
     f32 rate = sead::GlobalRandom::instance()->getF32Range(0.75f, 1.0f);
     setAnimUpdateRate(rate);
-    faceNearestPlayer();
+    faceNearestTarget();
 }
 
 void Luma::executeState_Idle() {
@@ -257,15 +261,19 @@ void Luma::executeState_Idle() {
     }
 
     // 1 in n chance per eligible frame to play an idle animation
-    const u32 RANDOM_IDLE_ANIM_CHANCE = 700;
-    if (mRandomIdleAnimTimer == 0) {
-        if (sead::GlobalRandom::instance()->getU32(RANDOM_IDLE_ANIM_CHANCE) == 0) {
-            changeState(StateID_IdleAnimation);
-            mRandomIdleAnimTimer = RANDOM_IDLE_TIMER_LIMIT_FRAMES;
+    // but don't do this if it's looking at a star
+
+    if (!mIsFixatedOnStar) {
+        const u32 RANDOM_IDLE_ANIM_CHANCE = 700;
+        if (mRandomIdleAnimTimer == 0) {
+            if (sead::GlobalRandom::instance()->getU32(RANDOM_IDLE_ANIM_CHANCE) == 0) {
+                changeState(StateID_IdleAnimation);
+                mRandomIdleAnimTimer = RANDOM_IDLE_TIMER_LIMIT_FRAMES;
+            }
         }
     }
 
-    faceNearestPlayer();
+    faceNearestTarget();
 }
 
 void Luma::finalizeState_Idle() { }
@@ -411,7 +419,46 @@ void Luma::collisionCallback(ActorCollisionCheck* cc_self, ActorCollisionCheck* 
     }
 }
 
-void Luma::faceNearestPlayer() {
+Actor* Luma::findClosestStar() const {
+    // ooh shiny
+    constexpr f32 DISTANCE_LIMIT = 16.0f * 20.0f;
+
+    Actor* star = nullptr;
+
+    ActorMgr* actorMgr = ActorMgr::instance();
+
+    f32 distance = DISTANCE_LIMIT;
+
+    for (ActorMgr::iterator it = actorMgr->getActorBegin(); it != actorMgr->getActorEnd(); it++) {
+        Actor* actor = static_cast<Actor*>(*it);
+        
+        if (actor == nullptr || actor->getProfileID() != 853) {
+            continue;
+        }
+
+        // check if it's close enough
+        f32 foundDist = (actor->getPos2D() - getPos2D()).length();
+        if (foundDist <= distance) {
+            distance = foundDist;
+            star = actor;
+        }
+    }
+
+    return star;
+}
+
+PlayerObject* Luma::findClosestPlayer() {
+    sead::Vector2f dist;
+    s32 playerIndex = searchNearPlayer(dist);
+
+    if (playerIndex == -1 || dist.length() > mPlayerDistanceThreshold) {
+        return nullptr;
+    }
+
+    return PlayerMgr::instance()->getPlayerObject(playerIndex);
+}
+
+void Luma::faceNearestTarget() {
     auto chaseAngle = [](s32 current, s32 target, s32 speed) {
         s32 difference = static_cast<s32>(
             static_cast<u32>(target) -
@@ -433,35 +480,33 @@ void Luma::faceNearestPlayer() {
     constexpr f32 VERTICAL_TURN_EXAGGERATION = 4.0f;
     constexpr s32 TURN_SPEED = sead::Mathf::deg2idx(3.0f);
     
-    sead::Vector2f dist;
-    s32 playerIndex = searchNearPlayer(dist);
+    sead::Vector3f targetPos;
 
-    if (playerIndex == -1) {
-        return;
-    }
+    // prioritise stars first
+    Actor* star = findClosestStar();
+    PlayerObject* player = findClosestPlayer();
 
-    if (dist.length() > mPlayerDistanceThreshold) {
+    mIsFixatedOnStar = star != nullptr;
+    if (star != nullptr) {
+        targetPos = star->getPos();
+        // use a more suitable z order to make sure the calculations aren't busted
+        targetPos.z = 3000.0f;
+    } else if (player != nullptr) {
+        targetPos = player->getPos();
+    } else {
         // look to screen
         mAngle.x() = chaseAngle(mAngle.x(), 0, TURN_SPEED);
         mAngle.y() = chaseAngle(mAngle.y(), 0, TURN_SPEED);
         return;
     }
 
-    PlayerObject* player = PlayerMgr::instance()->getPlayerObject(playerIndex);
-
-    if (player == nullptr) {
-        return;
-    }
-
-    sead::Vector3f delta = player->getPos() - mPos;
+    sead::Vector3f delta = targetPos - mPos;
 
     f32 radians = sead::Mathf::atan2(delta.x, delta.z);
     f32 degrees = sead::Mathf::rad2deg(radians);
     degrees *= HORIZONTAL_TURN_EXAGGERATION;
 
-    f32 horizontalDistance = sead::Mathf::sqrt(
-        delta.x * delta.x + delta.z * delta.z
-    );
+    f32 horizontalDistance = sead::Mathf::sqrt(delta.x * delta.x + delta.z * delta.z);
 
     f32 pitchRadians = sead::Mathf::atan2(delta.y, horizontalDistance);
     f32 pitchDegrees = sead::Mathf::rad2deg(pitchRadians);
