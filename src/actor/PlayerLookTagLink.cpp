@@ -83,7 +83,7 @@ Actor* PlayerLookTagLink::findParentActor() const {
     ActorMgr* actorMgr = ActorMgr::instance();
 
     for (ActorMgr::iterator it = actorMgr->getActorBegin(); it != actorMgr->getActorEnd(); it++) {
-        Actor* actor = sead::DynamicCast<Actor>(*it);
+        Actor* actor = static_cast<Actor*>(*it);
 
         if (actor == nullptr) {
             continue;
