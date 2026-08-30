@@ -355,4 +355,6 @@
         <value nybble="1-2" title="Luma Link ID"/>
         <value nybble="3-4" title="Actor Link ID" comment="Search for an actor with this value as its initial state. If this value is 0, Luma will look at this tag's position instead."/>
     </sprite>
+
+    <sprite string_id="ucology:crab" name="Crab"></sprite>
 </sprites>
