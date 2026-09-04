@@ -182,7 +182,7 @@ const ActorCreateInfo Luma::cCreateInfo = {
 Profile* Luma::cProfile = ucology::getRegistrar()->newProfile<Luma>("luma")
     .resources<"uco_luma">(ProfileInfo::cResType_Course)
     .flag(Profile::cFlag_DrawCullCheck)
-    .createInfo(&cCreateInfo)
+    .createInfo(&Luma::cCreateInfo)
     .build();
 
 CREATE_STATE_ID(Luma, Idle);
@@ -590,6 +590,7 @@ void Luma::faceNearestTarget() {
 class LumaLookTagLink : public Actor {
 public:
     static Profile* cProfile;
+    static const ActorCreateInfo cCreateInfo;
 
     LumaLookTagLink(const ActorCreateParam& param);
     ~LumaLookTagLink() override = default;
@@ -604,7 +605,13 @@ private:
     u8 mParentLinkID;
 };
 
-Profile* LumaLookTagLink::cProfile = ucology::getRegistrar()->newProfile<LumaLookTagLink>("luma_look_tag_link").build();
+const ActorCreateInfo LumaLookTagLink::cCreateInfo = {
+    .flag = ActorCreateInfo::cFlag_IgnoreSpawnRange
+};
+
+Profile* LumaLookTagLink::cProfile = ucology::getRegistrar()->newProfile<LumaLookTagLink>("luma_look_tag_link")
+    .createInfo(&LumaLookTagLink::cCreateInfo)
+    .build();
 
 LumaLookTagLink::LumaLookTagLink(const ActorCreateParam& param)
     : Actor(param)

@@ -10,6 +10,7 @@ namespace ucology {
 class Crab : public ActorMultiState {
 public:
     static Profile* cProfile;
+    static const ActorCreateInfo cCreateInfo;
     static const ActorBgCollisionCheck::Sensor cBottomSensor;
     static const ActorBgCollisionCheck::Sensor cTopSensor;
     static const ActorBgCollisionCheck::Sensor cAdjacentSensor;
@@ -58,9 +59,14 @@ private:
     bool mWasQuaked;
 };
 
+const ActorCreateInfo Crab::cCreateInfo = {
+    .offset_x = 8, .offset_y = 8
+};
+
 Profile* Crab::cProfile = ucology::getRegistrar()->newProfile<Crab>("crab")
     .resources<"uco_crab">(ProfileInfo::cResType_Course)
     .flag(Profile::cFlag_DrawCullCheck)
+    .createInfo(&cCreateInfo)
     .build();
 
 const ActorBgCollisionCheck::Sensor Crab::cBottomSensor = ActorBgCollisionCheck::Sensor(-3.0, 3.0, 0.0);

@@ -98,11 +98,12 @@ private:
 SEAD_RTTI_OVERRIDE_IMPL(ucology::PlayerLookTag, Actor);
 
 const ActorCreateInfo PlayerLookTag::cCreateInfo = {
-    .offset_x = 8, .offset_y = -8
+    .offset_x = 8, .offset_y = -8,
+    .flag = ActorCreateInfo::cFlag_IgnoreSpawnRange
 };
 
 Profile* PlayerLookTag::cProfile = ucology::getRegistrar()->newProfile<PlayerLookTag>("player_look_tag")
-    .createInfo(&cCreateInfo)
+    .createInfo(&PlayerLookTag::cCreateInfo)
     .build();
 
 PlayerLookTag::PlayerLookTag(const ActorCreateParam& param)
@@ -185,7 +186,8 @@ void PlayerLookTag::update_LookAt_ScreenWhileInLocation() {
 class PlayerLookTagLink : public Actor {
 public:
     static Profile* cProfile;
-    
+    static const ActorCreateInfo cCreateInfo;
+
     PlayerLookTagLink(const ActorCreateParam& param);
     ~PlayerLookTagLink() override = default;
 
@@ -199,7 +201,13 @@ private:
     u8 mLookTagID;
 };
 
-Profile* PlayerLookTagLink::cProfile = ucology::getRegistrar()->newProfile<PlayerLookTagLink>("player_look_tag_link").build();
+const ActorCreateInfo PlayerLookTagLink::cCreateInfo = {
+    .flag = ActorCreateInfo::cFlag_IgnoreSpawnRange
+};
+
+Profile* PlayerLookTagLink::cProfile = ucology::getRegistrar()->newProfile<PlayerLookTagLink>("player_look_tag_link")
+    .createInfo(&PlayerLookTagLink::cCreateInfo)    
+    .build();
 
 PlayerLookTagLink::PlayerLookTagLink(const ActorCreateParam& param)
     : Actor(param)

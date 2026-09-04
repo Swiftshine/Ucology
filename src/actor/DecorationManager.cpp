@@ -18,6 +18,7 @@ namespace ucology {
 class DecorationManager : public Actor {
 public:
     static Profile* cProfile;
+    static const ActorCreateInfo cCreateInfo;
     static DecorationManager* sInstance;
     static DecorationManager* instance() {
         return sInstance;
@@ -44,11 +45,15 @@ public:
     sead::SafeArray<agl::TextureData*, 5> mButterflyTextures;
 };
 
+const ActorCreateInfo DecorationManager::cCreateInfo = {
+    .flag = ActorCreateInfo::cFlag_IgnoreSpawnRange
+};
+
 Profile* DecorationManager::cProfile =
     ucology::getRegistrar()
         ->newProfile<DecorationManager>("decoration_manager")
+        .createInfo(&cCreateInfo)
         .build();
-
 
 DecorationManager* DecorationManager::sInstance = nullptr;
 

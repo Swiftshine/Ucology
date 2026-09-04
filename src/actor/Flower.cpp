@@ -15,6 +15,7 @@ public:
     };
 public:
     static Profile* cProfile;
+    static const ActorCreateInfo cCreateInfo;
     static const ActorBgCollisionCheck::Sensor cBottomSensor;
     static const ActorBgCollisionCheck::Sensor cTopSensor;
     static const ActorBgCollisionCheck::Sensor cAdjacentSensor;
@@ -40,6 +41,11 @@ public:
     u16 mRandomizerFlags;
 };
 
+const ActorCreateInfo Flower::cCreateInfo = {
+    .offset_x = 8,
+    .offset_y = 8
+};
+
 Profile* Flower::cProfile = ucology::getRegistrar()->newProfile<Flower>("flower").build();
 
 const ActorBgCollisionCheck::Sensor Flower::cBottomSensor = ActorBgCollisionCheck::Sensor(-3.0, 3.0, 0.0);
@@ -57,8 +63,8 @@ ActorBase::Result Flower::create() {
     mRandomizerFlags = red::SpriteUtil::getNybble4(this) << 4;
     mRandomizerFlags |= red::SpriteUtil::getNybble5(this);
     
-    mPos.x += 8.0f;
-    mPos.y -= 16.0f;
+    // mPos.x += 8.0f;
+    // mPos.y -= 16.0f;
     
     if (mIsRandomized) {
         mFlowerType = getRandomFlowerType();
