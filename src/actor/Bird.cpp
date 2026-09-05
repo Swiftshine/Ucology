@@ -368,7 +368,7 @@ void Bird::updatePlayerAttention() {
                     return;
                 }
 
-                // intentional fallthrough
+                [[fallthrough]];
             }
             
             case AttentionSettings::TakeAlways: {
