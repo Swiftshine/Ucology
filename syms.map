@@ -2,24 +2,32 @@
 
 // If your mod uses symbols that aren't in RedCore, you can add them here.
 
-_ZN2Bg9sInstanceE = 0x101dab94;
-_ZN2Bg14registerFlowerEfffhhh = 0x0268b96c;
-_ZN2Bg17registerButterflyEfffhhh = 0x02685914;
-_ZN2Bg12updateFlowerEffhb = 0x0268b974;
+
 _ZN15TextureRenderer11loadTextureERKN4sead14SafeStringBaseIcEES4_PN3agl11TextureDataERPN2nw3g3d3res7ResFileEPNS5_14TextureSamplerE = 0x02500388;
-_ZN12TexQuadGrass6createEPN3agl11TextureDataES2_S2_S2_S2_S2_S2_S2_S2_S2_ji = 0x02503abc;
 _ZN3agl11TextureDataC1Ev = 0x02a249a0;
 _ZN6ResMgr14loadArchiveResERKN4sead14SafeStringBaseIcEES4_PNS0_4HeapEb = 0x029d34a8;
-_ZN2Bg18getNextFlowerIndexEv = 0x0268b8e4;
-_ZN2Bg12deleteFlowerEh = 0x0268b908;
+
 _ZN21ActorBgCollisionCheck7checkBgEv = 0x0218d954;
 _ZN21ActorBgCollisionCheck12atFrameStartEv = 0x0218e180;
 _ZN14ActorCollision14calcFallSpeed_Ev = 0x020039f0;
 _ZN8RotShake4initERKNS_3ArgE = 0x029e2ce8;
 _ZN8RotShake4moveEv = 0x029e2d34;
-_ZN12FlowerTexMgr10initializeEv = 0x0268a038;
 
-_ZN12FlowerTexMgr21updateGrassAndFlowersEb = 0x02686428;
+
+// Bg
+    _ZN2Bg9sInstanceE = 0x101dab94;
+    _ZN2Bg14registerFlowerEfffhhh = 0x0268b96c;
+    _ZN2Bg17registerButterflyEfffhhh = 0x02685914;
+    _ZN2Bg12updateFlowerEffhb = 0x0268b974;
+    _ZN2Bg18getNextFlowerIndexEv = 0x0268b8e4;
+    _ZN2Bg12deleteFlowerEh = 0x0268b908;
+
+// BgDeco
+    _ZN6BgDeco10initializeEv  = 0x0268a038;
+    _ZN6BgDeco21updateGrassAndFlowersEb  = 0x02686428;
+
+// TexQuadDeco
+    _ZN11TexQuadDeco6createEPN3agl11TextureDataES2_S2_S2_S2_S2_S2_S2_S2_S2_ji = 0x02503abc;
 
 _ZN5Actor11calcSpeedX_Ev = 0x020013e8;
 

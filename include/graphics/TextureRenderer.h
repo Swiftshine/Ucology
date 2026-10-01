@@ -1,23 +1,24 @@
 #pragma once
 
-#include <types.h>
-#include <graphics/TextureRendererBase.h>
-
 #include <container/seadBuffer.h>
-
 #include <common/aglTextureData.h>
 #include <common/aglTextureSampler.h>
-
+#include <graphics/TextureRendererBase.h>
 #include <nw/g3d.h>
 
-class TextureRenderer : public TextureRendererBase {
+class TextureRenderer : public TextureRendererBase // vtbl Address: 0x100655FC
+{
 public:
+    TextureRenderer(); // TODO: implement
+
+    // Address: 0x02500374
     ~TextureRenderer();
 
     // Address: 0x02500388
     static void loadTexture(const sead::SafeString& archiveName, const sead::SafeString& textureName, agl::TextureData* texture, nw::g3d::res::ResFile*& res, agl::TextureSampler* sampler);
 
-    virtual void allocLists();
+    // Address: 0x02500858
+    virtual void allocLists(s32 bufferSize);
 
     agl::TextureData* getTexture1() const {
         return mTexture1;
@@ -43,6 +44,7 @@ public:
         mTexture1 = tex;
     }
 
+protected:
     u32 _30;
     agl::TextureData* mTexture1;
     agl::TextureData* mTexture2;
@@ -50,12 +52,13 @@ public:
     sead::Buffer<sead::Vector3f> mBuffer1;
     sead::Buffer<sead::Vector3f> mBuffer2;
     u32 _50[2];
-    sead::Buffer<float> _58;
-    sead::Buffer<float> _60;
+    sead::Buffer<f32> _58;
+    sead::Buffer<f32> _60;
     u32 _68[2];
-    sead::Buffer<int> _70;
+    sead::Buffer<s32> _70;
     u32 _78[2];
     u32 _80[2];
     u32 _88[2];
     u32 _90[2];
 };
+static_assert(sizeof(TextureRenderer) == 0x9C, "TextureRenderer size mismatch");

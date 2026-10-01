@@ -5,7 +5,6 @@
 #include <red/util/SpriteUtil.h>
 #include <map/Bg.h>
 #include <system/ResMgr.h>
-#include <graphics/FlowerTexMgr.h> 
 
 #include <red/heap/RedCoreHeap.h>
 #include <common/aglTextureData.h>
@@ -29,11 +28,11 @@ public:
     ~DecorationManager() override;
 
     Result create() override;
-
-    void initialize(FlowerTexMgr* texMgr);
-    void loadFlowers(FlowerTexMgr* texMgr);
-    void loadGrass(FlowerTexMgr* texMgr);
-    void loadButterflies(FlowerTexMgr* texMgr);
+    
+    void initialize(BgDeco* deco);
+    void loadFlowers(BgDeco* deco);
+    void loadGrass(BgDeco* deco);
+    void loadButterflies(BgDeco* deco);
 
     u8 mDecorationSet;
     bool mHasBigFlowers;
@@ -106,18 +105,18 @@ ActorBase::Result DecorationManager::create() {
     return cResult_Success;
 }
 
-void DecorationManager::initialize(FlowerTexMgr* texMgr) {
+void DecorationManager::initialize(BgDeco* deco) {
     for (u32 i = 0; i < 5; i++) {
         mButterflyTextures[i] = new agl::TextureData;
     }
 
     // swap to a bigger heap
-    // todo: use ActorAdditionalHeap
+    // todo: find a more appropriate heap to use
     sead::CurrentHeapSetter chs(red::RedCoreHeap::instance());
 
-    nw::g3d::ResFile** res = &texMgr->mResFile;
-    FlowerTexMgr::DecorationSettings& settings = texMgr->mSettings;
-    texMgr->mResFile = nullptr;
+    deco->setResFile(nullptr);
+    
+    BgDeco::DecorationSettings& settings = deco->getDecorationSettings();
 
     settings._36 = false;
     settings._c = 0.0f;
@@ -131,16 +130,17 @@ void DecorationManager::initialize(FlowerTexMgr* texMgr) {
         settings._0[i + 8] = 0;
     }
 
-    loadFlowers(texMgr);
-    loadGrass(texMgr);
-    loadButterflies(texMgr);
+    loadFlowers(deco);
+    loadGrass(deco);
+    loadButterflies(deco);
     
     
-    texMgr->updateGrassAndFlowers(true);
+    deco->updateGrassAndFlowers(true);
 }
 
-void DecorationManager::loadFlowers(FlowerTexMgr* texMgr) {
-    texMgr->mSettings.mHasBigFlowers = mHasBigFlowers;
+void DecorationManager::loadFlowers(BgDeco* deco) {
+    deco->getDecorationSettings().has_big_flowers = mHasBigFlowers;
+
     nw::g3d::res::ResFile* res = nullptr; // dummy;
 
     ResMgr::instance()->loadArchiveRes("uco_flower", "actor/uco_flower.szs", nullptr, true);
@@ -150,58 +150,59 @@ void DecorationManager::loadFlowers(FlowerTexMgr* texMgr) {
     // flower heads
     for (u32 i = 0; i < 5; i++) {
         snprintf(textureName, sizeof(textureName), "flower_%02d_%02d", mFlowerSet, mFlowerTypes[i]);
-        TextureRenderer::loadTexture("uco_flower", textureName, &texMgr->mFlowerTextures[i], res, nullptr);
+        TextureRenderer::loadTexture("uco_flower", textureName, &deco->getFlowerTexture(i), res, nullptr);
     }
 
     snprintf(textureName, sizeof(textureName), "flower_%02d_nml", mFlowerSet);
-    TextureRenderer::loadTexture("uco_flower", textureName, &texMgr->mFlowerTextureNormal, res, nullptr);
+    TextureRenderer::loadTexture("uco_flower", textureName, &deco->getFlowerTextureNormal(), res, nullptr);
 
     // it's possible to have different flower shapes within a set,
     // though it would probably be wasteful to have duplicates.
     // so for now it should be assumed that any flowers within a set
     // have the same shape
-    texMgr->mFlowerRenderer.create( 
-        &texMgr->mFlowerTextures[0],
-        &texMgr->mFlowerTextures[1],
-        &texMgr->mFlowerTextures[2],
-        &texMgr->mFlowerTextures[3],
-        &texMgr->mFlowerTextures[4],
-        &texMgr->mFlowerTextureNormal,
-        &texMgr->mFlowerTextureNormal,
-        &texMgr->mFlowerTextureNormal,
-        &texMgr->mFlowerTextureNormal,
-        &texMgr->mFlowerTextureNormal,
+    deco->getFlowerRenderer().create(
+        &deco->getFlowerTexture(0),
+        &deco->getFlowerTexture(1),
+        &deco->getFlowerTexture(2),
+        &deco->getFlowerTexture(3),
+        &deco->getFlowerTexture(4),
+        &deco->getFlowerTextureNormal(),
+        &deco->getFlowerTextureNormal(),
+        &deco->getFlowerTextureNormal(),
+        &deco->getFlowerTextureNormal(),
+        &deco->getFlowerTextureNormal(),
         3,
         -1
     );
 
-    texMgr->mFlowerRenderer.mDecorationType = TexQuadGrass::DecorationType::cDecoration_Flower;
+    deco->getFlowerRenderer().setDecorationType(TexQuadDeco::cDecoration_Flower);
 
     // flower stalks
-    snprintf(textureName, sizeof(textureName), "flower_%02d_stalk", mFlowerSet);
-    TextureRenderer::loadTexture("uco_flower", textureName, &texMgr->mFlowerStalkTexture, res, nullptr);
-    snprintf(textureName, sizeof(textureName), "flower_%02d_stalk_nml", mFlowerSet);
-    TextureRenderer::loadTexture("uco_flower", textureName, &texMgr->mFlowerStalkTextureNormal, res, nullptr);
 
-    texMgr->mFlowerStalkRenderer.create(
-        &texMgr->mFlowerStalkTexture,
-        &texMgr->mFlowerStalkTexture,
-        &texMgr->mFlowerStalkTexture,
-        &texMgr->mFlowerStalkTexture,
-        &texMgr->mFlowerStalkTexture,
-        &texMgr->mFlowerStalkTextureNormal,
-        &texMgr->mFlowerStalkTextureNormal,
-        &texMgr->mFlowerStalkTextureNormal,
-        &texMgr->mFlowerStalkTextureNormal,
-        &texMgr->mFlowerStalkTextureNormal,
+    snprintf(textureName, sizeof(textureName), "flower_%02d_stalk", mFlowerSet);
+    TextureRenderer::loadTexture("uco_flower", textureName, &deco->getFlowerStalkTexture(), res, nullptr);
+    snprintf(textureName, sizeof(textureName), "flower_%02d_stalk_nml", mFlowerSet);
+    TextureRenderer::loadTexture("uco_flower", textureName, &deco->getFlowerStalkTextureNormal(), res, nullptr);
+
+    deco->getFlowerStalkRenderer().create(
+        &deco->getFlowerStalkTexture(),
+        &deco->getFlowerStalkTexture(),
+        &deco->getFlowerStalkTexture(),
+        &deco->getFlowerStalkTexture(),
+        &deco->getFlowerStalkTexture(),
+        &deco->getFlowerStalkTextureNormal(),
+        &deco->getFlowerStalkTextureNormal(),
+        &deco->getFlowerStalkTextureNormal(),
+        &deco->getFlowerStalkTextureNormal(),
+        &deco->getFlowerStalkTextureNormal(),
         3,
         -1
     );
 
-    texMgr->mFlowerStalkRenderer.mDecorationType = TexQuadGrass::cDecoration_FlowerStem;
+    deco->getFlowerStalkRenderer().setDecorationType(TexQuadDeco::cDecoration_FlowerStem);
 }
 
-void DecorationManager::loadGrass(FlowerTexMgr* texMgr) {
+void DecorationManager::loadGrass(BgDeco* deco) {
     nw::g3d::res::ResFile* res = nullptr; // dummy;
 
     // todo: allow the user to select custom grass types
@@ -216,10 +217,10 @@ void DecorationManager::loadGrass(FlowerTexMgr* texMgr) {
             ResMgr::instance()->loadArchiveRes("obj_kusa_chika", "actor/obj_kusa_chika.szs", nullptr, true);
             for (u32 i = 0; i < 5; i++) {
                 snprintf(textureName, sizeof(textureName), "obj_kusa_chika%02d", i + 1);
-                TextureRenderer::loadTexture("obj_kusa_chika", textureName, &texMgr->mGrassTextures[i], res, nullptr);
+                TextureRenderer::loadTexture("obj_kusa_chika", textureName, &deco->getGrassTexture(i), res, nullptr);
 
                 snprintf(textureName, sizeof(textureName), "obj_kusa_chika%02d_nml", i + 1);
-                TextureRenderer::loadTexture("obj_kusa_chika", textureName, &texMgr->mGrassTextureNormals[i], res, nullptr);
+                TextureRenderer::loadTexture("obj_kusa_chika", textureName, &deco->getGrassTextureNormal(i), res, nullptr);
             }
             break;
         }
@@ -229,10 +230,10 @@ void DecorationManager::loadGrass(FlowerTexMgr* texMgr) {
             ResMgr::instance()->loadArchiveRes("obj_kusa_kogen", "actor/obj_kusa_kogen.szs", nullptr, true);
             for (u32 i = 0; i < 5; i++) {
                 snprintf(textureName, sizeof(textureName), "obj_kusa_kogen%02d", i + 1);
-                TextureRenderer::loadTexture("obj_kusa_kogen", textureName, &texMgr->mGrassTextures[i], res, nullptr);
+                TextureRenderer::loadTexture("obj_kusa_kogen", textureName, &deco->getGrassTexture(i), res, nullptr);
 
                 snprintf(textureName, sizeof(textureName), "obj_kusa_kogen%02d_nml", i + 1);
-                TextureRenderer::loadTexture("obj_kusa_kogen", textureName, &texMgr->mGrassTextureNormals[i], res, nullptr);
+                TextureRenderer::loadTexture("obj_kusa_kogen", textureName, &deco->getGrassTextureNormal(i), res, nullptr);
             }
             break;
         }
@@ -242,10 +243,10 @@ void DecorationManager::loadGrass(FlowerTexMgr* texMgr) {
             ResMgr::instance()->loadArchiveRes("obj_kusa_daishizen", "actor/obj_kusa_daishizen.szs", nullptr, true);
             for (u32 i = 0; i < 5; i++) {
                 snprintf(textureName, sizeof(textureName), "obj_kusa_dai%02d", i + 1);
-                TextureRenderer::loadTexture("obj_kusa_daishizen", textureName, &texMgr->mGrassTextures[i], res, nullptr);
+                TextureRenderer::loadTexture("obj_kusa_daishizen", textureName, &deco->getGrassTexture(i), res, nullptr);
 
                 snprintf(textureName, sizeof(textureName), "obj_kusa_dai%02d_nml", i + 1);
-                TextureRenderer::loadTexture("obj_kusa_daishizen", textureName, &texMgr->mGrassTextureNormals[i], res, nullptr);
+                TextureRenderer::loadTexture("obj_kusa_daishizen", textureName, &deco->getGrassTextureNormal(i), res, nullptr);
             }
             break;
         }
@@ -257,35 +258,34 @@ void DecorationManager::loadGrass(FlowerTexMgr* texMgr) {
 
             for (u32 i = 0; i < 5; i++) {
                 snprintf(textureName, sizeof(textureName), "obj_kusa%02d", i + 1);
-                TextureRenderer::loadTexture("obj_kusa", textureName, &texMgr->mGrassTextures[i], res, nullptr);
+                TextureRenderer::loadTexture("obj_kusa", textureName, &deco->getGrassTexture(i), res, nullptr);
 
                 snprintf(textureName, sizeof(textureName), "obj_kusa%02d_nml", i + 1);
-                TextureRenderer::loadTexture("obj_kusa", textureName, &texMgr->mGrassTextureNormals[i], res, nullptr);
+                TextureRenderer::loadTexture("obj_kusa", textureName, &deco->getGrassTextureNormal(i), res, nullptr);
             }
         }
     }
     
-
-    texMgr->mGrassRenderer.create(
-        &texMgr->mGrassTextures[0],
-        &texMgr->mGrassTextures[1],
-        &texMgr->mGrassTextures[2],
-        &texMgr->mGrassTextures[3],
-        &texMgr->mGrassTextures[4],
-        &texMgr->mGrassTextureNormals[0],
-        &texMgr->mGrassTextureNormals[1],
-        &texMgr->mGrassTextureNormals[2],
-        &texMgr->mGrassTextureNormals[3],
-        &texMgr->mGrassTextureNormals[4],
+    deco->getGrassRenderer().create(
+        &deco->getGrassTexture(0),
+        &deco->getGrassTexture(1),
+        &deco->getGrassTexture(2),
+        &deco->getGrassTexture(3),
+        &deco->getGrassTexture(4),
+        &deco->getGrassTextureNormal(0),
+        &deco->getGrassTextureNormal(1),
+        &deco->getGrassTextureNormal(2),
+        &deco->getGrassTextureNormal(3),
+        &deco->getGrassTextureNormal(4),
         3,
         -1
     );
-
-    texMgr->mGrassRenderer.mDecorationType = TexQuadGrass::DecorationType::cDecoration_Grass;
+    
+    deco->getGrassRenderer().setDecorationType(TexQuadDeco::cDecoration_Grass);
 }
 
-void DecorationManager::loadButterflies(FlowerTexMgr* texMgr) {
-    texMgr->mSettings.mHasButterflies = !mDisableButterflies;
+void DecorationManager::loadButterflies(BgDeco* deco) {
+    deco->getDecorationSettings().has_butterflies = !mDisableButterflies;
 
     nw::g3d::res::ResFile* res = nullptr; // dummy
 
@@ -297,32 +297,32 @@ void DecorationManager::loadButterflies(FlowerTexMgr* texMgr) {
         TextureRenderer::loadTexture("uco_butterfly", textureName, mButterflyTextures[i], res, nullptr);
     }
 
-    texMgr->mButterflyRenderer.create(
+    deco->getButterflyRenderer().create(
         mButterflyTextures[0],
         mButterflyTextures[1],
         mButterflyTextures[2],
         mButterflyTextures[3],
         mButterflyTextures[4],
-        &texMgr->mGrassTextureNormals[0], // this is what the game does
-        &texMgr->mGrassTextureNormals[1],
-        &texMgr->mGrassTextureNormals[2],
-        &texMgr->mGrassTextureNormals[3],
-        &texMgr->mGrassTextureNormals[4],
+        &deco->getGrassTextureNormal(0), // this is what the original game does
+        &deco->getGrassTextureNormal(0),
+        &deco->getGrassTextureNormal(0),
+        &deco->getGrassTextureNormal(0),
+        &deco->getGrassTextureNormal(0),
         3,
         -1
     );
 
-    texMgr->mButterflyRenderer.mDecorationType = TexQuadGrass::DecorationType::cDecoration_Butterfly;
+    deco->getButterflyRenderer().setDecorationType(TexQuadDeco::cDecoration_Butterfly);
 }
 
-void initializeDecoration(FlowerTexMgr* texMgr) {
-    DecorationManager* deco = DecorationManager::sInstance;
-    if (deco == nullptr) {
-        texMgr->initialize();
+void initializeDecoration(BgDeco* deco) {
+    DecorationManager* inst = DecorationManager::sInstance;
+    if (inst == nullptr) {
+        deco->initialize();
         return;
     }
 
-    deco->initialize(texMgr);
+    inst->initialize(deco);
 }
 
 
