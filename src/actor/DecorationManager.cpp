@@ -114,7 +114,7 @@ void DecorationManager::initialize(BgDeco* deco) {
     // todo: find a more appropriate heap to use
     sead::CurrentHeapSetter chs(red::RedCoreHeap::instance());
 
-    deco->setResFile(nullptr);
+    deco->getResFile() = nullptr;
     
     BgDeco::DecorationSettings& settings = deco->getDecorationSettings();
 
