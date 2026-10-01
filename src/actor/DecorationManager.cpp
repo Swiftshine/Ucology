@@ -16,6 +16,7 @@
 namespace ucology {
 
 class DecorationManager : public Actor {
+    SEAD_RTTI_OVERRIDE(DecorationManager, Actor);
 public:
     static Profile* cProfile;
     static const ActorCreateInfo cCreateInfo;
@@ -44,6 +45,8 @@ public:
     u8 mButterflyTypes[5];
     sead::SafeArray<agl::TextureData*, 5> mButterflyTextures;
 };
+
+SEAD_RTTI_OVERRIDE_IMPL(DecorationManager, Actor);
 
 const ActorCreateInfo DecorationManager::cCreateInfo = {
     .flag = ActorCreateInfo::cFlag_IgnoreSpawnRange

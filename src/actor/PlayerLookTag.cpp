@@ -184,6 +184,7 @@ void PlayerLookTag::update_LookAt_ScreenWhileInLocation() {
 /* ===== PLAYER LOOK TAG LINK ===== */
 
 class PlayerLookTagLink : public Actor {
+    SEAD_RTTI_OVERRIDE(PlayerLookTagLink, Actor);
 public:
     static Profile* cProfile;
     static const ActorCreateInfo cCreateInfo;
@@ -200,6 +201,8 @@ private:
     u8 mParentLinkID;
     u8 mLookTagID;
 };
+
+SEAD_RTTI_OVERRIDE_IMPL(PlayerLookTagLink, Actor);
 
 const ActorCreateInfo PlayerLookTagLink::cCreateInfo = {
     .flag = ActorCreateInfo::cFlag_IgnoreSpawnRange

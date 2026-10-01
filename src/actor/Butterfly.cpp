@@ -8,6 +8,7 @@
 namespace ucology {
 
 class Butterfly : public Actor {
+    SEAD_RTTI_OVERRIDE(Butterfly, Actor);
 public:
     enum ButterflyType : u8 {
         A, B, C, D, E,
@@ -32,6 +33,7 @@ public:
     u16 mRandomizerFlags;
 };
 
+SEAD_RTTI_OVERRIDE_IMPL(Butterfly, Actor);
 
 Profile* Butterfly::cProfile = ucology::getRegistrar()->newProfile<Butterfly>("butterfly").build();
 

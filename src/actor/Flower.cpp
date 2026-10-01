@@ -8,6 +8,7 @@
 namespace ucology {
 
 class Flower : public ActorCollision {
+    SEAD_RTTI_OVERRIDE(Flower, ActorCollision);
 public:
     enum FlowerType : u8 {
         A, B, C, D, E,
@@ -40,6 +41,8 @@ public:
     bool mIsRandomized;
     u16 mRandomizerFlags;
 };
+
+SEAD_RTTI_OVERRIDE_IMPL(Flower, ActorCollision);
 
 const ActorCreateInfo Flower::cCreateInfo = {
     .offset_x = 8,

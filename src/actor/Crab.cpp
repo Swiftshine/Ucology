@@ -8,6 +8,7 @@
 namespace ucology {
 
 class Crab : public ActorMultiState {
+    SEAD_RTTI_OVERRIDE(Crab, ActorMultiState);
 public:
     static Profile* cProfile;
     static const ActorCreateInfo cCreateInfo;
@@ -58,6 +59,8 @@ private:
     // burrow
     bool mWasQuaked;
 };
+
+SEAD_RTTI_OVERRIDE_IMPL(Crab, ActorMultiState);
 
 const ActorCreateInfo Crab::cCreateInfo = {
     .offset_x = 8, .offset_y = 8

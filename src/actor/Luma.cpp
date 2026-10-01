@@ -588,6 +588,7 @@ void Luma::faceNearestTarget() {
 // TODO: cache actor ids
 // TODO: multiple lumas can look at a single object; account for that
 class LumaLookTagLink : public Actor {
+    SEAD_RTTI_OVERRIDE(LumaLookTagLink, Actor);
 public:
     static Profile* cProfile;
     static const ActorCreateInfo cCreateInfo;
@@ -604,6 +605,8 @@ private:
     u8 mLumaID;
     u8 mParentLinkID;
 };
+
+SEAD_RTTI_OVERRIDE_IMPL(LumaLookTagLink, Actor);
 
 const ActorCreateInfo LumaLookTagLink::cCreateInfo = {
     .flag = ActorCreateInfo::cFlag_IgnoreSpawnRange

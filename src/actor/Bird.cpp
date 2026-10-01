@@ -14,6 +14,7 @@
 namespace ucology {
 
 class Bird : public ActorMultiState {
+    SEAD_RTTI_OVERRIDE(Bird, ActorMultiState);
 private:
     enum BirdType : u8 {
         // WhiteBird,
@@ -106,6 +107,8 @@ private:
     u32 mFlyWaitCounter;
     bool mWasQuaked;
 };
+
+SEAD_RTTI_OVERRIDE_IMPL(Bird, ActorMultiState);
 
 const ActorCreateInfo Bird::cCreateInfo = {
     .offset_x = 8, .offset_y = 8
