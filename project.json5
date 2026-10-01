@@ -3,7 +3,7 @@
 
     Name: "Ucology",
     Type: "Standard",
-    Version: "1.0.0",
+    Version: "0.1.0",
     Description: "Isn't nature fascinating?",
 
     SourceDirs: [
