@@ -18,7 +18,7 @@ namespace ucology {
 class DecorationManager : public Actor {
     SEAD_RTTI_OVERRIDE(DecorationManager, Actor);
 public:
-    static Profile* cProfile;
+    static Profile* sProfile;
     static const ActorCreateInfo cCreateInfo;
     static DecorationManager* sInstance;
     static DecorationManager* instance() {
@@ -52,7 +52,7 @@ const ActorCreateInfo DecorationManager::cCreateInfo = {
     .flag = ActorCreateInfo::cFlag_IgnoreSpawnRange
 };
 
-Profile* DecorationManager::cProfile =
+Profile* DecorationManager::sProfile =
     ucology::getRegistrar()
         ->newProfile<DecorationManager>("decoration_manager")
         .createInfo(&cCreateInfo)

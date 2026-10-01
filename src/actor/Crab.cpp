@@ -10,7 +10,7 @@ namespace ucology {
 class Crab : public ActorMultiState {
     SEAD_RTTI_OVERRIDE(Crab, ActorMultiState);
 public:
-    static Profile* cProfile;
+    static Profile* sProfile;
     static const ActorCreateInfo cCreateInfo;
     static const ActorBgCollisionCheck::Sensor cBottomSensor;
     static const ActorBgCollisionCheck::Sensor cTopSensor;
@@ -66,7 +66,7 @@ const ActorCreateInfo Crab::cCreateInfo = {
     .offset_x = 8, .offset_y = 8
 };
 
-Profile* Crab::cProfile = ucology::getRegistrar()->newProfile<Crab>("crab")
+Profile* Crab::sProfile = ucology::getRegistrar()->newProfile<Crab>("crab")
     .resources<"uco_crab">(ProfileInfo::cResType_Course)
     .flag(Profile::cFlag_DrawCullCheck)
     .createInfo(&cCreateInfo)

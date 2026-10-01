@@ -15,7 +15,7 @@ public:
         Count
     };
 public:
-    static Profile* cProfile;
+    static Profile* sProfile;
 
     Butterfly(const ActorCreateParam& param);
     ~Butterfly() override = default;
@@ -35,7 +35,7 @@ public:
 
 SEAD_RTTI_OVERRIDE_IMPL(Butterfly, Actor);
 
-Profile* Butterfly::cProfile = ucology::getRegistrar()->newProfile<Butterfly>("butterfly").build();
+Profile* Butterfly::sProfile = ucology::getRegistrar()->newProfile<Butterfly>("butterfly").build();
 
 Butterfly::Butterfly(const ActorCreateParam &param) : Actor(param) {}
 

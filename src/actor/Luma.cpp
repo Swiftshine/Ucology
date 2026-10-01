@@ -31,7 +31,7 @@ namespace ucology {
 class Luma : public ActorMultiState {
     SEAD_RTTI_OVERRIDE(Luma, ActorMultiState);
 public:
-    static Profile* cProfile;
+    static Profile* sProfile;
     static const ActorCollisionCheck::CollisionData cCollisionData;
     static const ActorCreateInfo cCreateInfo;
 
@@ -179,7 +179,7 @@ const ActorCreateInfo Luma::cCreateInfo = {
     .offset_x = 8, .offset_y = -8
 };
 
-Profile* Luma::cProfile = ucology::getRegistrar()->newProfile<Luma>("luma")
+Profile* Luma::sProfile = ucology::getRegistrar()->newProfile<Luma>("luma")
     .resources<"uco_luma">(ProfileInfo::cResType_Course)
     .flag(Profile::cFlag_DrawCullCheck)
     .createInfo(&Luma::cCreateInfo)
@@ -590,7 +590,7 @@ void Luma::faceNearestTarget() {
 class LumaLookTagLink : public Actor {
     SEAD_RTTI_OVERRIDE(LumaLookTagLink, Actor);
 public:
-    static Profile* cProfile;
+    static Profile* sProfile;
     static const ActorCreateInfo cCreateInfo;
 
     LumaLookTagLink(const ActorCreateParam& param);
@@ -612,7 +612,7 @@ const ActorCreateInfo LumaLookTagLink::cCreateInfo = {
     .flag = ActorCreateInfo::cFlag_IgnoreSpawnRange
 };
 
-Profile* LumaLookTagLink::cProfile = ucology::getRegistrar()->newProfile<LumaLookTagLink>("luma_look_tag_link")
+Profile* LumaLookTagLink::sProfile = ucology::getRegistrar()->newProfile<LumaLookTagLink>("luma_look_tag_link")
     .createInfo(&LumaLookTagLink::cCreateInfo)
     .build();
 

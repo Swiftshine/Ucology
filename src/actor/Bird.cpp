@@ -36,7 +36,7 @@ private:
         Ending
     };
 public:
-    static Profile* cProfile;
+    static Profile* sProfile;
     static const ActorCreateInfo cCreateInfo;
     static const ActorBgCollisionCheck::Sensor cBottomSensor;
     static const ActorBgCollisionCheck::Sensor cTopSensor;
@@ -114,7 +114,7 @@ const ActorCreateInfo Bird::cCreateInfo = {
     .offset_x = 8, .offset_y = 8
 };
 
-Profile* Bird::cProfile = ucology::getRegistrar()->newProfile<Bird>("bird")
+Profile* Bird::sProfile = ucology::getRegistrar()->newProfile<Bird>("bird")
     .resources<"uco_blue_jay", "uco_rosefinch", "uco_lorikeet", "uco_parrot", "uco_crested_tit">(ProfileInfo::cResType_Course)
     .flag(Profile::cFlag_DrawCullCheck)
     .createInfo(&cCreateInfo)

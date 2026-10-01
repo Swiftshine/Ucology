@@ -15,7 +15,7 @@ public:
         Count
     };
 public:
-    static Profile* cProfile;
+    static Profile* sProfile;
     static const ActorCreateInfo cCreateInfo;
     static const ActorBgCollisionCheck::Sensor cBottomSensor;
     static const ActorBgCollisionCheck::Sensor cTopSensor;
@@ -49,7 +49,7 @@ const ActorCreateInfo Flower::cCreateInfo = {
     .offset_y = -16,
 };
 
-Profile* Flower::cProfile = ucology::getRegistrar()->newProfile<Flower>("flower")
+Profile* Flower::sProfile = ucology::getRegistrar()->newProfile<Flower>("flower")
     .createInfo(&cCreateInfo)
     .build();
 

@@ -25,7 +25,7 @@ private:
         ScreenWhileInLocation
     };
 public:
-    static Profile* cProfile;
+    static Profile* sProfile;
     static const ActorCreateInfo cCreateInfo;
 
     PlayerLookTag(const ActorCreateParam& param);
@@ -102,7 +102,7 @@ const ActorCreateInfo PlayerLookTag::cCreateInfo = {
     .flag = ActorCreateInfo::cFlag_IgnoreSpawnRange
 };
 
-Profile* PlayerLookTag::cProfile = ucology::getRegistrar()->newProfile<PlayerLookTag>("player_look_tag")
+Profile* PlayerLookTag::sProfile = ucology::getRegistrar()->newProfile<PlayerLookTag>("player_look_tag")
     .createInfo(&PlayerLookTag::cCreateInfo)
     .build();
 
@@ -186,7 +186,7 @@ void PlayerLookTag::update_LookAt_ScreenWhileInLocation() {
 class PlayerLookTagLink : public Actor {
     SEAD_RTTI_OVERRIDE(PlayerLookTagLink, Actor);
 public:
-    static Profile* cProfile;
+    static Profile* sProfile;
     static const ActorCreateInfo cCreateInfo;
 
     PlayerLookTagLink(const ActorCreateParam& param);
@@ -208,7 +208,7 @@ const ActorCreateInfo PlayerLookTagLink::cCreateInfo = {
     .flag = ActorCreateInfo::cFlag_IgnoreSpawnRange
 };
 
-Profile* PlayerLookTagLink::cProfile = ucology::getRegistrar()->newProfile<PlayerLookTagLink>("player_look_tag_link")
+Profile* PlayerLookTagLink::sProfile = ucology::getRegistrar()->newProfile<PlayerLookTagLink>("player_look_tag_link")
     .createInfo(&PlayerLookTagLink::cCreateInfo)    
     .build();
 
